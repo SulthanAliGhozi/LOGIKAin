@@ -1,0 +1,11 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { createMilestone, createProjectTask, requestProjectApproval } from '../actions/admin'
+
+function OpsForm({ type, projectId }: { type: 'milestone' | 'task' | 'approval'; projectId: string }) {
+  const [open, setOpen] = useState(false); const [pending, startTransition] = useTransition(); const [message, setMessage] = useState('')
+  return <div className="border border-black/10 bg-white/50 p-5"><button onClick={() => setOpen(!open)} className="text-xs font-bold text-[#b36f43]">{open ? '− Close' : `+ New ${type}`}</button>{open && <form className="mt-4 grid gap-3" onSubmit={(event) => { event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget)); setMessage(''); startTransition(async () => { try { if (type === 'milestone') await createMilestone({ project_id: projectId, title: data.title, description: data.description }); else if (type === 'task') await createProjectTask({ project_id: projectId, title: data.title, description: data.description, client_visible: data.client_visible === 'on' }); else await requestProjectApproval({ project_id: projectId, title: data.title, request_note: data.description }); setMessage('Saved.'); (event.currentTarget as HTMLFormElement).reset() } catch { setMessage('Could not save.') } }) }}><input required name="title" placeholder={`${type} title`} className="border border-black/15 bg-transparent px-3 py-3 text-xs" /><textarea name="description" placeholder={type === 'approval' ? 'Request note' : 'Description'} rows={3} className="border border-black/15 bg-transparent px-3 py-3 text-xs" />{type === 'task' && <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="client_visible" /> Visible to client</label>}<button disabled={pending} className="w-fit bg-[#171717] px-4 py-3 text-xs font-bold text-[#f3f0ea]">{pending ? 'Saving...' : 'Save'}</button>{message && <p className="text-xs text-[#b36f43]">{message}</p>}</form>}</div>
+}
+
+export function ProjectOpsForms({ projectId }: { projectId: string }) { return <div className="grid gap-3 md:grid-cols-3"><OpsForm type="milestone" projectId={projectId} /><OpsForm type="task" projectId={projectId} /><OpsForm type="approval" projectId={projectId} /></div> }

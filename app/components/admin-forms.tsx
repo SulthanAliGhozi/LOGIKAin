@@ -1,0 +1,14 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { createAdminLead, createAdminProject } from '../actions/admin'
+
+export function NewLeadForm() {
+  const [open, setOpen] = useState(false); const [pending, startTransition] = useTransition(); const [message, setMessage] = useState('')
+  return <div className="border border-black/10 bg-white/50 p-5"><button onClick={() => setOpen(!open)} className="text-xs font-bold text-[#b36f43]">{open ? '− Close form' : '+ Add lead manually'}</button>{open && <form className="mt-5 grid gap-3 sm:grid-cols-2" onSubmit={(event) => { event.preventDefault(); const target = event.currentTarget; const form = new FormData(target); setMessage(''); startTransition(async () => { try { await createAdminLead({ name: form.get('name'), email: form.get('email'), brief: form.get('brief'), source: 'admin' }); setMessage('Lead created.'); target.reset() } catch { setMessage('Lead gagal dibuat.') } }) }}><input required name="name" placeholder="Name" className="border border-black/15 bg-transparent px-3 py-3 text-xs" /><input required type="email" name="email" placeholder="Email" className="border border-black/15 bg-transparent px-3 py-3 text-xs" /><textarea required name="brief" placeholder="Brief" className="border border-black/15 bg-transparent px-3 py-3 text-xs sm:col-span-2" rows={3} /><button disabled={pending} className="w-fit bg-[#171717] px-4 py-3 text-xs font-bold text-[#f3f0ea]">{pending ? 'Saving...' : 'Save lead'}</button>{message && <p className="text-xs text-[#b36f43] sm:col-span-2">{message}</p>}</form>}</div>
+}
+
+export function NewProjectForm() {
+  const [open, setOpen] = useState(false); const [pending, startTransition] = useTransition(); const [message, setMessage] = useState('')
+  return <div className="border border-black/10 bg-white/50 p-5"><button onClick={() => setOpen(!open)} className="text-xs font-bold text-[#b36f43]">{open ? '− Close form' : '+ Create project'}</button>{open && <form className="mt-5 grid gap-3" onSubmit={(event) => { event.preventDefault(); const target = event.currentTarget; const form = new FormData(target); setMessage(''); startTransition(async () => { try { await createAdminProject({ name: form.get('name'), description: form.get('description') }); setMessage('Project created.'); target.reset() } catch { setMessage('Project gagal dibuat.') } }) }}><input required name="name" placeholder="Project name" className="border border-black/15 bg-transparent px-3 py-3 text-xs" /><textarea name="description" placeholder="Description" className="border border-black/15 bg-transparent px-3 py-3 text-xs" rows={3} /><button disabled={pending} className="w-fit bg-[#171717] px-4 py-3 text-xs font-bold text-[#f3f0ea]">{pending ? 'Saving...' : 'Save project'}</button>{message && <p className="text-xs text-[#b36f43]">{message}</p>}</form>}</div>
+}

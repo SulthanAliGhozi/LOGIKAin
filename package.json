@@ -1,0 +1,8 @@
+{
+  "name": "logikain-company-profile",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": { "dev": "next dev", "build": "next build", "start": "next start", "lint": "eslint .", "typecheck": "tsc --noEmit", "typecheck:app": "tsc -p tsconfig.app.json --noEmit", "test": "vitest run", "test:watch": "vitest", "test:e2e": "playwright test", "db:push": "npx supabase@latest db query --linked --file supabase/LOGIKAin.sql" },
+  "dependencies": { "@supabase/ssr": "latest", "@supabase/supabase-js": "latest", "next": "^16.0.0", "react": "^19.0.0", "react-dom": "^19.0.0", "zod": "latest" },
+  "devDependencies": { "@playwright/test": "latest", "@tailwindcss/postcss": "latest", "@types/node": "latest", "@types/react": "latest", "@types/react-dom": "latest", "eslint": "latest", "eslint-config-next": "latest", "playwright": "latest", "tailwindcss": "latest", "typescript": "latest", "vitest": "latest" }
+}

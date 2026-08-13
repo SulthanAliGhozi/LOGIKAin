@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root { --ink: #171717; --paper: #f5f0e9; --muted: #716d66; --orange: #c8753d; --sand: #e8ded1; --clay: #b36f43; --line: rgba(23,23,23,.15); }
+@theme inline { --color-ink: var(--ink); --color-paper: var(--paper); --color-muted: var(--muted); --color-orange: var(--orange); }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+::selection { background: var(--orange); color: var(--paper); }
+a { text-decoration: none; }
+.mono { font-family: 'Courier New', monospace; letter-spacing: .1em; }
+.display { letter-spacing: -.065em; line-height: .96; }
+.section-pad { padding-left: max(6vw, 24px); padding-right: max(6vw, 24px); }
+.border-line { border-color: var(--line); }
+.grain { background-image: radial-gradient(rgba(21,21,21,.12) .5px, transparent .5px); background-size: 5px 5px; }
+@keyframes drift { from { transform: translateX(0); } to { transform: translateX(-35%); } }
+.ticker-track { animation: drift 28s linear infinite; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .ticker-track { animation: none; } }
