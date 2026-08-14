@@ -6,6 +6,7 @@ import { createClient } from '../../lib/supabase/server'
 import { createAdminClient } from '../../lib/supabase/admin'
 import { LogoutButton } from '../components/logout-button'
 import { AdminSidebar } from '../components/admin-sidebar'
+import { AdminTransition } from '../components/admin-transition'
 import { allowedAdminNav } from '../../lib/auth/permissions'
 
 export const metadata: Metadata = { robots: { index: false, follow: false } }
@@ -118,7 +119,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
         {/* Main content */}
         <main className="min-w-0 flex-1 overflow-x-auto">
-          {children}
+          <AdminTransition>
+            {children}
+          </AdminTransition>
         </main>
       </div>
     </div>
