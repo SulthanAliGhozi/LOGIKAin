@@ -102,7 +102,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           LOGIKA<span className="text-[#b36f43]">in</span>
           <span className="ml-3 text-[10px] font-normal tracking-wider text-white/30">ADMIN</span>
         </Link>
-        <div className="flex items-center gap-5 text-xs">
+        <div className="hidden items-center gap-5 text-xs md:flex">
           <Link href="/" className="text-white/50 hover:text-white">View website ↗</Link>
           <Link href="/portal" className="text-white/50 hover:text-white">Portal ↗</Link>
           <LogoutButton />
@@ -114,7 +114,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
       <div className="flex min-h-[calc(100vh-57px)]">
         {/* Sidebar */}
-        <AdminSidebar groups={groups} />
+        <AdminSidebar groups={groups} profile={profile} />
 
         {/* Main content */}
         <main className="min-w-0 flex-1 overflow-x-auto">
