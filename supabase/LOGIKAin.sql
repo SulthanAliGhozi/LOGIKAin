@@ -641,8 +641,8 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, username, full_name, role, status)
-  values (new.id, nullif(new.raw_user_meta_data ->> 'username', ''), coalesce(new.raw_user_meta_data ->> 'full_name', new.email), 'project_member', 'invited')
+  insert into public.profiles (id, username, full_name, roles, status)
+  values (new.id, nullif(new.raw_user_meta_data ->> 'username', ''), coalesce(new.raw_user_meta_data ->> 'full_name', new.email), '{project_member}', 'invited')
   on conflict (id) do update set username = coalesce(excluded.username, public.profiles.username), full_name = coalesce(excluded.full_name, public.profiles.full_name);
   return new;
 end;
