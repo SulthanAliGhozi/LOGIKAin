@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { createAdminLead, createAdminProject, updateLead } from '../actions/admin'
+import { createAdminLead, createAdminProject, updateLead, updateAdminProject } from '../actions/admin'
 
 type LeadData = {
   id?: string
