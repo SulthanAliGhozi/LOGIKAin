@@ -46,7 +46,7 @@ export function Nav() {
           return (
             <Link 
               key={link.href} 
-              href={link.href} 
+              href={link.href as any} 
               onClick={() => setOpen(false)} 
               className={`block px-2 py-3 text-sm transition-colors md:p-0 md:text-xs ${isActive ? 'text-orange' : 'text-[#57534d] hover:text-ink'}`}
             >
