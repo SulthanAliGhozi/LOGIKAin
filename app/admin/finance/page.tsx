@@ -1,5 +1,6 @@
 import { createClient } from '../../../lib/supabase/server'
 import { FinanceForm, FinanceList } from '../../components/finance-forms'
+import Link from 'next/link'
 
 export default async function FinanceAdminPage() {
   const supabase = await createClient()
@@ -12,7 +13,7 @@ export default async function FinanceAdminPage() {
   return (
     <main className="min-h-screen bg-[#f3f0ea] p-6 text-[#171717] md:p-10">
       <div className="flex items-center gap-2 text-xs font-medium text-black/50">
-        <a href="/admin" className="hover:text-[#b36f43] transition-colors">← Back</a>
+        <Link href="/admin" className="hover:text-[#b36f43] transition-colors">← Back</Link>
         <span>/</span>
         <span>LOGIKAin</span>
         <span>/</span>

@@ -118,6 +118,16 @@ export async function publishContent(tableInput: string, id: string) {
   revalidatePath('/'); revalidatePath('/services'); revalidatePath('/industries'); revalidatePath('/projects'); revalidatePath('/insights'); revalidatePath('/admin/content')
 }
 
+export async function unpublishContent(tableInput: string, id: string) {
+  const table = contentTypeSchema.parse(tableInput); const { supabase, user } = await staffClient('content')
+  const { data: current, error: readError } = await supabase.from(table).select('*').eq('id', id).single()
+  if (readError || !current) throw new Error(readError?.message || 'Content not found')
+  const { error } = await supabase.from(table).update({ status: 'draft', updated_at: new Date().toISOString() }).eq('id', id)
+  if (error) throw new Error(error.message)
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: table, entity_id: id, action: 'unpublished' })
+  revalidatePath('/'); revalidatePath('/services'); revalidatePath('/industries'); revalidatePath('/projects'); revalidatePath('/insights'); revalidatePath('/admin/content')
+}
+
 export async function deleteContent(tableInput: string, id: string) {
   const table = contentTypeSchema.parse(tableInput); const contentId = z.string().uuid().parse(id); const { supabase, user } = await staffClient('content')
   const { error } = await supabase.from(table).delete().eq('id', contentId)

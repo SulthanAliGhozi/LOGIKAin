@@ -1,7 +1,8 @@
+import Link from 'next/link'
 import { createClient } from '../../../lib/supabase/server'
 import { LeadForm } from '../../components/admin-forms'
 import { ConvertLeadButton } from '../../components/lead-actions'
-import { AdminDeleteButton } from '../../components/admin-delete-button'
+import { AdminActionGroup, AdminEditIcon, AdminDeleteIcon } from '../../components/admin-actions'
 
 function StatusBadge({ status }: { status: string }) {
   const s = status.toLowerCase()
@@ -17,18 +18,15 @@ function formatDate(dateStr: string | null) {
   return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-export default async function LeadsAdminPage({ searchParams }: { searchParams: { edit?: string } }) {
+export default async function LeadsAdminPage() {
   const supabase = await createClient();
   const { data, error } = await supabase.from('leads').select('id,name,email,brief,status,source,created_at').order('created_at', { ascending: false });
   const count = data?.length || 0;
-  
-  const editId = searchParams?.edit
-  const editData = editId ? data?.find(l => l.id === editId) : undefined
 
   return (
     <main className="min-h-screen bg-[#f3f0ea] p-6 text-[#171717] md:p-10">
       <div className="flex items-center gap-2 text-xs font-medium text-black/50">
-        <a href="/admin" className="hover:text-[#b36f43] transition-colors">← Back</a>
+        <Link href="/admin" className="hover:text-[#b36f43] transition-colors">← Back</Link>
         <span>/</span>
         <span>LOGIKAin</span>
         <span>/</span>
@@ -46,7 +44,7 @@ export default async function LeadsAdminPage({ searchParams }: { searchParams: {
       </div>
 
       <div className="mt-10 bg-white p-6 rounded-xl border border-black/10 shadow-sm" id="form-section">
-        <LeadForm initialData={editData} />
+        <LeadForm />
       </div>
 
       <div className="mt-10 overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
@@ -79,10 +77,10 @@ export default async function LeadsAdminPage({ searchParams }: { searchParams: {
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-3">
                         <ConvertLeadButton leadId={row.id} status={row.status} />
-                        <div className="flex items-center gap-3">
-                          <a href={`/admin/leads?edit=${row.id}#form-section`} className="text-[10px] font-bold text-[#b36f43] hover:underline">Edit</a>
-                          <AdminDeleteButton id={row.id} kind="lead" />
-                        </div>
+                        <AdminActionGroup>
+                          <AdminEditIcon href={`/admin/leads/${row.id}/edit`} />
+                          <AdminDeleteIcon id={row.id} kind="lead" />
+                        </AdminActionGroup>
                       </div>
                     </td>
                   </tr>

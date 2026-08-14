@@ -1,35 +1,18 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { createInvoice, createQuote, recordPayment, updateInvoice, updateQuote, deleteInvoice, deleteQuote } from '../actions/admin'
+import { createInvoice, createQuote, recordPayment, updateInvoice, updateQuote } from '../actions/admin'
+import { AdminActionGroup, AdminEditIcon, AdminDeleteIcon, AdminViewIcon } from './admin-actions'
 
 export function FinanceForm({ type, initialData }: { type: 'quote' | 'invoice' | 'payment', initialData?: any }) {
-  const [open, setOpen] = useState(!!initialData); 
   const [pending, startTransition] = useTransition(); 
   const [message, setMessage] = useState('')
   const isEdit = !!initialData;
 
-  const handleDelete = () => {
-    if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
-    startTransition(async () => {
-      try {
-        if (type === 'quote') await deleteQuote(initialData.id);
-        else if (type === 'invoice') await deleteInvoice(initialData.id);
-        setMessage('Deleted successfully.');
-      } catch (err: any) {
-        setMessage('Could not delete: ' + err.message);
-      }
-    })
-  }
-
   return (
     <div className="border border-black/10 bg-white/50 p-5">
-      <button onClick={() => setOpen(!open)} className="text-xs font-bold text-[#b36f43]">
-        {open ? '− Close' : isEdit ? `Edit ${type}` : `+ New ${type}`}
-      </button>
-      {open && (
-        <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={(event) => { 
-          event.preventDefault(); 
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(event) => { 
+        event.preventDefault(); 
           const raw = Object.fromEntries(new FormData(event.currentTarget)); 
           startTransition(async () => { 
             try { 
@@ -66,15 +49,9 @@ export function FinanceForm({ type, initialData }: { type: 'quote' | 'invoice' |
             <button disabled={pending} type="submit" className="w-fit bg-[#171717] px-4 py-3 text-xs font-bold text-[#f3f0ea]">
               {pending ? 'Saving...' : 'Save'}
             </button>
-            {isEdit && type !== 'payment' && (
-              <button disabled={pending} type="button" onClick={handleDelete} className="w-fit border border-red-500 text-red-500 px-4 py-3 text-xs font-bold">
-                {pending ? '...' : 'Delete'}
-              </button>
-            )}
           </div>
           {message && <p className="text-xs text-[#b36f43] sm:col-span-2">{message}</p>}
         </form>
-      )}
     </div>
   )
 }
@@ -105,7 +82,11 @@ export function FinanceList({ type, data }: { type: 'quote' | 'invoice', data: a
               <td className="px-5 py-4">{row.status}</td>
               <td className="px-5 py-4">{row.total_minor}</td>
               <td className="px-5 py-4">
-                <FinanceForm type={type} initialData={row} />
+                <AdminActionGroup>
+                  <AdminViewIcon href={`/admin/${type === 'quote' ? 'quotations' : 'invoices'}/${row.id}`} />
+                  <AdminEditIcon href={`/admin/${type === 'quote' ? 'quotations' : 'invoices'}/${row.id}/edit`} />
+                  <AdminDeleteIcon id={row.id} kind={type} />
+                </AdminActionGroup>
               </td>
             </tr>
           ))}

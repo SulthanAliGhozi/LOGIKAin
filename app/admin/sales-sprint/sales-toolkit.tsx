@@ -13,9 +13,26 @@ export function SalesToolkit({ products }: { products: Product[] }) {
   const [isMounted, setIsMounted] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(1200)
+  const [isAdjusting, setIsAdjusting] = useState(false)
+  
+  const defaultLayouts = {
+    lg: [
+      { i: 'calculator', x: 0, y: 0, w: 8, h: 5 },
+      { i: 'plan', x: 8, y: 0, w: 4, h: 10 },
+      { i: 'market', x: 0, y: 5, w: 4, h: 5 },
+      { i: 'crm', x: 4, y: 5, w: 4, h: 5 },
+      { i: 'pitch', x: 0, y: 10, w: 8, h: 6 },
+    ]
+  }
+  const [layouts, setLayouts] = useState<any>(defaultLayouts)
+  const [tempLayouts, setTempLayouts] = useState<any>(defaultLayouts)
   
   useEffect(() => {
     setIsMounted(true)
+    const saved = localStorage.getItem('salesSprintLayouts')
+    if (saved) {
+      try { setLayouts(JSON.parse(saved)); setTempLayouts(JSON.parse(saved)) } catch(e){}
+    }
     if (!containerRef.current) return
     const observer = new ResizeObserver((entries) => {
       if (entries[0]) setContainerWidth(entries[0].contentRect.width)
@@ -51,39 +68,46 @@ export function SalesToolkit({ products }: { products: Product[] }) {
     alert('Prospek berhasil ditambahkan ke CRM lokal!')
   }
 
-  // Layout Configuration
-  const defaultLayouts = {
-    lg: [
-      { i: 'calculator', x: 0, y: 0, w: 8, h: 5 },
-      { i: 'plan', x: 8, y: 0, w: 4, h: 10 },
-      { i: 'market', x: 0, y: 5, w: 4, h: 5 },
-      { i: 'crm', x: 4, y: 5, w: 4, h: 5 },
-      { i: 'pitch', x: 0, y: 10, w: 8, h: 6 },
-    ]
-  }
+  // Removed defaultLayouts from here
 
   if (!isMounted) return <div className="animate-pulse flex space-x-4"><div className="flex-1 space-y-6 py-1"><div className="h-64 bg-black/10 rounded"></div></div></div>
 
   return (
     <div className="-mx-4 sm:mx-0" ref={containerRef as any}>
-      <div className="mb-4 flex justify-between items-center text-xs text-black/50">
-        <p>💡 Tip: Anda bisa menarik ujung kanan bawah panel untuk mengubah ukuran (resize), atau menahan *header* panel untuk menggeser letaknya (drag & drop).</p>
+      <div className="mb-4 flex justify-between items-center text-xs text-black/50 bg-white p-3 rounded-lg border border-black/10">
+        <p>💡 Tip: {isAdjusting ? 'Tarik ujung kanan bawah untuk resize, geser header untuk pindah posisi.' : 'Klik Adjust Layout untuk mengubah posisi dan ukuran panel.'}</p>
+        <div className="flex gap-2">
+          {isAdjusting ? (
+            <>
+              <button onClick={() => { setIsAdjusting(false); setTempLayouts(layouts) }} className="px-3 py-1.5 border border-black/20 rounded hover:bg-black/5">Cancel</button>
+              <button onClick={() => { setLayouts(tempLayouts); localStorage.setItem('salesSprintLayouts', JSON.stringify(tempLayouts)); setIsAdjusting(false) }} className="px-3 py-1.5 bg-[#b36f43] text-white font-bold rounded hover:bg-black">Save Layout</button>
+            </>
+          ) : (
+            <button onClick={() => setIsAdjusting(true)} className="px-3 py-1.5 border border-black/20 font-bold rounded hover:bg-black hover:text-white transition-colors">
+              <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              Adjust Layout
+            </button>
+          )}
+        </div>
       </div>
 
       <Responsive
         width={containerWidth}
         className="layout"
-        layouts={defaultLayouts}
+        layouts={isAdjusting ? tempLayouts : layouts}
+        onLayoutChange={(current, all) => setTempLayouts(all)}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
         rowHeight={80}
         {...({ draggableHandle: ".drag-handle" } as any)}
+        isDraggable={isAdjusting}
+        isResizable={isAdjusting}
         margin={[20, 20]}
       >
         
         {/* 1. Target Calculator */}
         <div key="calculator" className="bg-white border border-black/10 rounded-xl shadow-sm overflow-hidden flex flex-col">
-          <div className="drag-handle bg-[#171717] text-white px-4 py-2 cursor-move flex items-center gap-2 select-none">
+          <div className={`drag-handle bg-[#171717] text-white px-4 py-2 ${isAdjusting ? 'cursor-move' : 'cursor-default'} flex items-center gap-2 select-none`}>
             <span className="font-mono text-xs opacity-50">01</span> <b className="text-xs tracking-widest uppercase">Target Calculator</b>
           </div>
           <div className="p-4 flex-1 overflow-auto">
@@ -93,7 +117,7 @@ export function SalesToolkit({ products }: { products: Product[] }) {
 
         {/* 2. Market Finder */}
         <div key="market" className="bg-white border border-black/10 rounded-xl shadow-sm overflow-hidden flex flex-col">
-          <div className="drag-handle bg-[#171717] text-white px-4 py-2 cursor-move flex items-center gap-2 select-none">
+          <div className={`drag-handle bg-[#171717] text-white px-4 py-2 ${isAdjusting ? 'cursor-move' : 'cursor-default'} flex items-center gap-2 select-none`}>
             <span className="font-mono text-xs opacity-50">02</span> <b className="text-xs tracking-widest uppercase">Market Finder</b>
           </div>
           <div className="p-4 flex-1 overflow-auto">
@@ -117,7 +141,7 @@ export function SalesToolkit({ products }: { products: Product[] }) {
 
         {/* 3. CRM Lead Collector */}
         <div key="crm" className="bg-white border border-black/10 rounded-xl shadow-sm overflow-hidden flex flex-col">
-          <div className="drag-handle bg-[#171717] text-white px-4 py-2 cursor-move flex items-center gap-2 select-none">
+          <div className={`drag-handle bg-[#171717] text-white px-4 py-2 ${isAdjusting ? 'cursor-move' : 'cursor-default'} flex items-center gap-2 select-none`}>
             <span className="font-mono text-xs opacity-50">03</span> <b className="text-xs tracking-widest uppercase">Outreach CRM</b>
           </div>
           <div className="p-4 flex-1 overflow-auto">
@@ -143,7 +167,7 @@ export function SalesToolkit({ products }: { products: Product[] }) {
 
         {/* 4. Pitch Generator */}
         <div key="pitch" className="bg-white border border-black/10 rounded-xl shadow-sm overflow-hidden flex flex-col">
-          <div className="drag-handle bg-[#171717] text-white px-4 py-2 cursor-move flex items-center gap-2 select-none">
+          <div className={`drag-handle bg-[#171717] text-white px-4 py-2 ${isAdjusting ? 'cursor-move' : 'cursor-default'} flex items-center gap-2 select-none`}>
             <span className="font-mono text-xs opacity-50">04</span> <b className="text-xs tracking-widest uppercase">Pitch Generator</b>
           </div>
           <div className="p-4 flex-1 overflow-auto flex flex-col lg:flex-row gap-6">
@@ -166,7 +190,7 @@ export function SalesToolkit({ products }: { products: Product[] }) {
 
         {/* 5. 6-Hour Plan Sidebar */}
         <div key="plan" className="bg-[#171717] text-[#f3f0ea] rounded-xl shadow-sm overflow-hidden flex flex-col">
-          <div className="drag-handle bg-black/40 text-white px-4 py-2 cursor-move flex items-center gap-2 select-none">
+          <div className={`drag-handle bg-black/40 text-white px-4 py-2 ${isAdjusting ? 'cursor-move' : 'cursor-default'} flex items-center gap-2 select-none`}>
             <span className="font-mono text-xs opacity-50">05</span> <b className="text-xs tracking-widest uppercase">Action Plan</b>
           </div>
           <div className="p-4 lg:p-6 flex-1 overflow-auto">

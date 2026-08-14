@@ -1,7 +1,8 @@
 /* eslint-disable react/no-unescaped-entities */
 import { createClient } from '../../../lib/supabase/server'
 import { TestimonialForm } from '../../components/testimonial-form'
-import { AdminDeleteButton } from '../../components/admin-delete-button'
+import { AdminActionGroup, AdminEditIcon, AdminDeleteIcon } from '../../components/admin-actions'
+import Link from 'next/link'
 
 function StatusBadge({ status }: { status: string }) {
   const s = status.toLowerCase()
@@ -12,18 +13,15 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${color}`}>{status}</span>
 }
 
-export default async function TestimonialsPage({ searchParams }: { searchParams: { edit?: string } }) {
+export default async function TestimonialsPage() {
   const supabase = await createClient(); 
   const { data, error } = await supabase.from('testimonials').select('id,quote,author_name,author_role,company_name,status,featured,created_at').order('created_at', { ascending: false })
   const count = data?.length || 0;
-  
-  const editId = searchParams?.edit
-  const editData = editId ? data?.find(t => t.id === editId) : undefined
 
   return (
     <main className="min-h-screen bg-[#f3f0ea] p-6 text-[#171717] md:p-10">
       <div className="flex items-center gap-2 text-xs font-medium text-black/50">
-        <a href="/admin" className="hover:text-[#b36f43] transition-colors">← Back</a>
+        <Link href="/admin" className="hover:text-[#b36f43] transition-colors">← Back</Link>
         <span>/</span>
         <span>LOGIKAin</span>
         <span>/</span>
@@ -41,7 +39,7 @@ export default async function TestimonialsPage({ searchParams }: { searchParams:
       </div>
 
       <div className="mt-10 bg-white p-6 rounded-xl border border-black/10 shadow-sm" id="form-section">
-        <TestimonialForm initialData={editData} />
+        <TestimonialForm />
       </div>
 
       <div className="mt-10 overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
@@ -81,9 +79,11 @@ export default async function TestimonialsPage({ searchParams }: { searchParams:
                         <span className="text-black/30">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 flex items-center gap-4">
-                      <a href={`/admin/testimonials?edit=${row.id}#form-section`} className="text-xs font-bold text-[#b36f43] hover:underline">Edit</a>
-                      <AdminDeleteButton id={row.id} kind="testimonial" />
+                    <td className="px-6 py-4">
+                      <AdminActionGroup>
+                        <AdminEditIcon href={`/admin/testimonials/${row.id}/edit`} />
+                        <AdminDeleteIcon id={row.id} kind="testimonial" />
+                      </AdminActionGroup>
                     </td>
                   </tr>
                 ))}

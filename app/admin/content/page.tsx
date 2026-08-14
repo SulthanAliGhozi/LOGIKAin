@@ -1,6 +1,7 @@
 import { createClient } from '../../../lib/supabase/server'
 import { PublishButton } from '../../components/publish-button'
-import { DeleteContentButton } from '../../components/delete-content-button'
+import { AdminActionGroup, AdminEditIcon, AdminDeleteIcon } from '../../components/admin-actions'
+import Link from 'next/link'
 
 function StatusBadge({ status }: { status: string }) {
   const s = status.toLowerCase()
@@ -35,7 +36,7 @@ export default async function ContentAdminPage() {
   return (
     <main className="min-h-screen bg-[#f3f0ea] p-6 text-[#171717] md:p-10">
       <div className="flex items-center gap-2 text-xs font-medium text-black/50">
-        <a href="/admin" className="hover:text-[#b36f43] transition-colors">← Back</a>
+        <Link href="/admin" className="hover:text-[#b36f43] transition-colors">← Back</Link>
         <span>/</span>
         <span>LOGIKAin</span>
         <span>/</span>
@@ -56,11 +57,11 @@ export default async function ContentAdminPage() {
       
       <div className="mt-6 flex flex-wrap gap-3">
         {sources.map((source) => (
-          <a key={source.table} href={`/admin/content/new?type=${source.table}`} 
+          <Link key={source.table} href={`/admin/content/new?type=${source.table}`} 
              className="inline-flex items-center gap-2 rounded-lg bg-[#171717] px-4 py-2.5 text-sm font-semibold text-[#f3f0ea] hover:bg-[#b36f43] transition-colors shadow-sm">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             New {source.singular}
-          </a>
+          </Link>
         ))}
       </div>
 
@@ -96,17 +97,20 @@ export default async function ContentAdminPage() {
                     {section.data.map((row) => (
                       <tr key={row.id} className="hover:bg-black/[0.02] even:bg-black/[0.01] transition-colors">
                         <td className="px-6 py-4 font-medium">
-                          <a className="hover:text-[#b36f43] transition-colors" href={`/admin/content/${row.id}?type=${section.table}`}>
+                          <Link className="hover:text-[#b36f43] transition-colors" href={`/admin/content/${row.id}/edit?type=${section.table}`}>
                             {row.name || row.title}
-                          </a>
+                          </Link>
                         </td>
                         <td className="px-6 py-4 text-black/60">{row.slug}</td>
                         <td className="px-6 py-4"><StatusBadge status={row.status} /></td>
                         <td className="px-6 py-4 text-black/60">{formatDate(row.updated_at)}</td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-4">
                             <PublishButton table={section.table} id={row.id} status={row.status} />
-                            <DeleteContentButton table={section.table} id={row.id} />
+                            <AdminActionGroup>
+                              <AdminEditIcon href={`/admin/content/${row.id}/edit?type=${section.table}`} />
+                              <AdminDeleteIcon id={row.id} kind="content" table={section.table} />
+                            </AdminActionGroup>
                           </div>
                         </td>
                       </tr>
