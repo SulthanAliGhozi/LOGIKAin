@@ -84,7 +84,7 @@ create table if not exists public.content_services (
 
 create table if not exists public.content_industries (
   id uuid primary key default gen_random_uuid(), slug text not null unique, name text not null, summary text not null default '', body text not null default '',
-  status text not null default 'draft' check (status in ('draft','review','published','archived')), seo_title text, seo_description text,
+  status text not null default 'draft' check (status in ('draft','review','published','archived')), seo_title text, seo_description text, og_image_id uuid references public.media_assets(id),
   created_by uuid references auth.users(id), updated_at timestamptz not null default now()
 );
 

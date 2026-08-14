@@ -22,7 +22,7 @@ export function ContentEditor({ content, table }: { content?: Content; table: st
 
   return <form className="grid max-w-4xl gap-4" onSubmit={(event) => {
     event.preventDefault(); const form = new FormData(event.currentTarget); const get = (key: string) => form.get(key) || ''
-    const payload: Record<string, unknown> = { table, id: content?.id, slug: get('slug'), status: get('status'), seo_title: get('seo_title'), seo_description: get('seo_description'), featured_image_id: get('featured_image_id') || null }
+    const payload: Record<string, unknown> = { table, id: content?.id, slug: get('slug'), status: get('status'), seo_title: get('seo_title'), seo_description: get('seo_description'), og_image_id: get('og_image_id') || null }
     if (isProject) Object.assign(payload, { title: get('title'), short_description: get('short_description'), overview: get('overview'), problem: get('problem'), analysis: get('analysis'), solution: get('solution'), implementation: get('implementation'), results: get('results'), client_display_name: get('client_display_name'), project_year: get('project_year') || undefined })
     else if (isInsight) Object.assign(payload, { title: get('title'), excerpt: get('excerpt'), content: get('content') })
     else Object.assign(payload, { name: get('name'), summary: get('summary'), body: get('body') })
@@ -30,8 +30,8 @@ export function ContentEditor({ content, table }: { content?: Content; table: st
   }}>
     {field(isProject || isInsight ? 'title' : 'name', nameLabel)}
     {field('slug', 'Slug')}
-    <label className="grid gap-2 text-xs font-bold">Featured Image (Media Library)
-      <MediaPicker name="featured_image_id" defaultValue={String(value('featured_image_id') || '')} />
+    <label className="grid gap-2 text-xs font-bold">Cover / Thumbnail (Media Library)
+      <MediaPicker name="og_image_id" defaultValue={String(value('og_image_id') || '')} />
     </label>
     {isProject ? <>
       {field('short_description', 'Short description', true)}{field('overview', 'Overview', true)}{field('problem', 'Problem', true, false)}{field('analysis', 'Analysis', true, false)}{field('solution', 'Solution', true, false)}{field('implementation', 'Implementation', true, false)}{field('results', 'Results', true, false)}
