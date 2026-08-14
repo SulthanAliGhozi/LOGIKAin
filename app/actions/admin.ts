@@ -299,6 +299,16 @@ export async function createTestimonial(input: unknown) {
   if (error) throw new Error(error.message); await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'testimonial', entity_id: item.id, action: 'created' }); revalidatePath('/'); revalidatePath('/admin/testimonials'); return item
 }
 
+export async function updateTestimonial(input: unknown) {
+  const data = z.object({ id: z.string().uuid(), quote: z.string().min(10), author_name: z.string().min(2), author_role: z.string().optional(), company_name: z.string().optional(), status: z.enum(['draft','review','published','archived']).default('draft'), featured: z.boolean().default(false) }).parse(input)
+  const { id, ...fields } = data
+  const { supabase, user } = await staffClient('content')
+  const { error } = await supabase.from('testimonials').update({ ...fields, updated_at: new Date().toISOString() }).eq('id', id)
+  if (error) throw new Error(error.message)
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'testimonial', entity_id: id, action: 'updated' })
+  revalidatePath('/'); revalidatePath('/admin/testimonials')
+}
+
 export async function addQuoteItem(input: unknown) {
   const data = z.object({ quote_id: z.string().uuid(), description: z.string().min(2), quantity: z.number().int().positive(), unit_amount_minor: z.number().int().nonnegative(), sort_order: z.number().int().nonnegative().default(0) }).parse(input); const { supabase, user } = await staffClient('commercial')
   const { data: quote } = await supabase.from('quotes').select('status').eq('id', data.quote_id).maybeSingle(); if (!quote) throw new Error('Quotation not found'); if (quote.status === 'accepted') throw new Error('Accepted quotations are immutable')
