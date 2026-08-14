@@ -18,7 +18,7 @@ export default async function StorePage() {
           <p className="text-sm text-black/60 max-w-xl mb-12">Beli layanan cepat dan aset digital langsung tanpa perlu meeting. Pembayaran otomatis via QRIS.</p>
           
           <div className="grid md:grid-cols-3 gap-6">
-            {b2cProducts.map(p => (
+            {b2cProducts.map((p: any) => (
               <div key={p.slug} className="border border-black/10 bg-white/50 p-6 flex flex-col hover:border-[#b36f43]/40 transition-colors">
                 <h3 className="text-xl font-bold tracking-tight">{p.name}</h3>
                 <p className="text-xs text-black/60 mt-3 flex-grow">{p.desc}</p>
