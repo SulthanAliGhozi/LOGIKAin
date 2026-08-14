@@ -1,14 +1,13 @@
 import { Nav } from '../components/nav'
 import { Footer } from '../components/footer'
 import Link from 'next/link'
+import { createClient } from '../../lib/supabase/server'
 
-const b2cProducts = [
-  { slug: 'web-umkm-starter', name: 'Website UMKM Starter', price: 350000, desc: 'Website 1 halaman + Katalog WhatsApp. Selesai dalam 3 hari.' },
-  { slug: 'paket-desain-sosmed', name: 'Paket Desain Sosmed', price: 150000, desc: '10 Template Feed Instagram premium siap pakai (Canva).' },
-  { slug: 'ebook-closing', name: 'E-Book: Closing Sprint', price: 99000, desc: 'Teknik rahasia closing 3 juta pertama dalam 7 hari.' }
-]
+export default async function StorePage() {
+  const supabase = await createClient()
+  const { data: setting } = await supabase.from('site_settings').select('value').eq('key', 'b2c_store_catalog').single()
+  const b2cProducts = setting?.value ? (typeof setting.value === 'string' ? JSON.parse(setting.value) : setting.value) : []
 
-export default function StorePage() {
   return (
     <>
       <Nav />

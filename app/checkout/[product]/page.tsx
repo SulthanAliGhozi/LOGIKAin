@@ -4,18 +4,16 @@ import { Footer } from '../../components/footer'
 import { createClient } from '../../../lib/supabase/server'
 import { CheckoutFlow } from './checkout-flow'
 
-const b2cProducts = [
-  { slug: 'web-umkm-starter', name: 'Website UMKM Starter', price: 350000, desc: 'Website 1 halaman + Katalog WhatsApp. Selesai dalam 3 hari.' },
-  { slug: 'paket-desain-sosmed', name: 'Paket Desain Sosmed', price: 150000, desc: '10 Template Feed Instagram premium siap pakai (Canva).' },
-  { slug: 'ebook-closing', name: 'E-Book: Closing Sprint', price: 99000, desc: 'Teknik rahasia closing 3 juta pertama dalam 7 hari.' }
-]
-
 export default async function CheckoutPage({ params }: { params: Promise<{ product: string }> }) {
   const { product: slug } = await params
-  const product = b2cProducts.find(p => p.slug === slug)
+  const supabase = await createClient()
+
+  const { data: catalogSetting } = await supabase.from('site_settings').select('value').eq('key', 'b2c_store_catalog').single()
+  const b2cProducts = catalogSetting?.value ? (typeof catalogSetting.value === 'string' ? JSON.parse(catalogSetting.value) : catalogSetting.value) : []
+  
+  const product = b2cProducts.find((p: any) => p.slug === slug)
   if (!product) notFound()
 
-  const supabase = await createClient()
   const { data: setting } = await supabase.from('site_settings').select('value').eq('key', 'payment_qris_payload').single()
   const qrisPayload = setting?.value ? JSON.parse(setting.value) : ''
 
