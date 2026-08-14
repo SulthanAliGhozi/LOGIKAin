@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { SprintCalculator } from './sprint-calculator'
-import { Responsive, useContainerWidth } from 'react-grid-layout'
+import { Responsive } from 'react-grid-layout'
 
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
@@ -11,10 +11,17 @@ type Product = { name: string, price: number, slug: string, desc: string }
 
 export function SalesToolkit({ products }: { products: Product[] }) {
   const [isMounted, setIsMounted] = useState(false)
-  const [containerRef, containerWidth] = useContainerWidth()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState(1200)
   
   useEffect(() => {
     setIsMounted(true)
+    if (!containerRef.current) return
+    const observer = new ResizeObserver((entries) => {
+      if (entries[0]) setContainerWidth(entries[0].contentRect.width)
+    })
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
   }, [])
 
   // 1. Offer & Message Generator
@@ -70,7 +77,7 @@ export function SalesToolkit({ products }: { products: Product[] }) {
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
         rowHeight={80}
-        draggableHandle=".drag-handle"
+        {...({ draggableHandle: ".drag-handle" } as any)}
         margin={[20, 20]}
       >
         
