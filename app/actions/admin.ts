@@ -90,6 +90,23 @@ export async function createAdminProject(input: unknown) {
   revalidatePath('/admin'); revalidatePath('/admin/projects'); return project
 }
 
+export async function updateAdminProject(input: unknown) {
+  const schema = z.object({ id: z.string().uuid(), name: z.string().min(2), description: z.string().default(''), status: z.enum(['draft','active','completed','cancelled']).default('active') })
+  const data = schema.parse(input); const { id, ...fields } = data; const { supabase, user } = await staffClient('delivery')
+  const { error } = await supabase.from('business_projects').update({ ...fields, updated_at: new Date().toISOString() }).eq('id', id)
+  if (error) throw new Error(error.message)
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'business_project', entity_id: id, action: 'updated' })
+  revalidatePath('/admin/projects'); revalidatePath(`/admin/projects/${id}`)
+}
+
+export async function deleteAdminProject(id: string) {
+  const projectId = z.string().uuid().parse(id); const { supabase, user } = await staffClient('delivery')
+  const { error } = await supabase.from('business_projects').delete().eq('id', projectId)
+  if (error) throw new Error(error.message)
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'business_project', entity_id: projectId, action: 'deleted' })
+  revalidatePath('/admin/projects')
+}
+
 export async function publishContent(tableInput: string, id: string) {
   const table = contentTypeSchema.parse(tableInput); const { supabase, user } = await staffClient('content')
   const { data: current, error: readError } = await supabase.from(table).select('*').eq('id', id).single()

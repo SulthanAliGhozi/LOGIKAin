@@ -64,7 +64,63 @@ export function LeadForm({ initialData }: { initialData?: LeadData }) {
   )
 }
 
-export function NewProjectForm() {
-  const [open, setOpen] = useState(false); const [pending, startTransition] = useTransition(); const [message, setMessage] = useState('')
-  return <div className="border border-black/10 bg-white/50 p-5"><button onClick={() => setOpen(!open)} className="text-xs font-bold text-[#b36f43]">{open ? '− Close form' : '+ Create project'}</button>{open && <form className="mt-5 grid gap-3" onSubmit={(event) => { event.preventDefault(); const target = event.currentTarget; const form = new FormData(target); setMessage(''); startTransition(async () => { try { await createAdminProject({ name: form.get('name'), description: form.get('description') }); setMessage('Project created.'); target.reset() } catch { setMessage('Project gagal dibuat.') } }) }}><input required name="name" placeholder="Project name" className="border border-black/15 bg-transparent px-3 py-3 text-xs" /><textarea name="description" placeholder="Description" className="border border-black/15 bg-transparent px-3 py-3 text-xs" rows={3} /><button disabled={pending} className="w-fit bg-[#171717] px-4 py-3 text-xs font-bold text-[#f3f0ea]">{pending ? 'Saving...' : 'Save project'}</button>{message && <p className="text-xs text-[#b36f43]">{message}</p>}</form>}</div>
+type ProjectData = {
+  id?: string
+  name: string
+  description?: string
+  status?: string
+}
+
+export function ProjectForm({ initialData }: { initialData?: ProjectData }) {
+  const [pending, startTransition] = useTransition()
+  const [message, setMessage] = useState('')
+
+  return (
+    <form className="grid gap-3" onSubmit={(event) => { 
+      event.preventDefault()
+      const target = event.currentTarget
+      const form = new FormData(target)
+      setMessage('')
+      startTransition(async () => { 
+        try { 
+          if (initialData?.id) {
+            await updateAdminProject({ 
+              id: initialData.id, 
+              name: form.get('name'), 
+              description: form.get('description'),
+              status: form.get('status') || initialData.status
+            })
+            setMessage('Project updated.')
+          } else {
+            await createAdminProject({ 
+              name: form.get('name'), 
+              description: form.get('description') 
+            })
+            setMessage('Project created.')
+            target.reset() 
+          }
+        } catch { 
+          setMessage('Save failed.') 
+        } 
+      }) 
+    }}>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-bold">{initialData ? 'Edit Project' : 'Create New Project'}</h3>
+      </div>
+      <input required name="name" defaultValue={initialData?.name || ''} placeholder="Project name" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
+      <textarea name="description" defaultValue={initialData?.description || ''} placeholder="Description" className="border border-black/15 bg-transparent px-3 py-3 text-xs" rows={3} />
+      {initialData && (
+        <select name="status" defaultValue={initialData.status} className="border border-black/15 bg-transparent px-3 py-3 text-xs">
+          <option value="draft">Draft</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      )}
+      <button disabled={pending} className="w-fit bg-[#171717] px-4 py-3 text-xs font-bold text-[#f3f0ea]">
+        {pending ? 'Saving...' : initialData ? 'Update Project' : 'Create Project'}
+      </button>
+      {message && <p className="text-xs text-[#b36f43]">{message}</p>}
+    </form>
+  )
 }

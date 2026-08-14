@@ -1,5 +1,5 @@
 import { AdminTableModule } from '../../components/admin-module'
-import { NewProjectForm } from '../../components/admin-forms'
+import { ProjectForm } from '../../components/admin-forms'
 
 export default function ProjectsAdminPage() {
   return (
@@ -20,8 +20,7 @@ export default function ProjectsAdminPage() {
       </div>
 
       <div className="mb-10 bg-white p-6 rounded-xl border border-black/10 shadow-sm">
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-black/50">Create New Project</h3>
-        <NewProjectForm />
+        <ProjectForm />
       </div>
 
       <div className="overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
