@@ -38,7 +38,7 @@ export function adminPermissionForPath(pathname: string): StaffPermission | null
   if (pathname.startsWith('/admin/leads')) return 'leads'
   if (pathname.startsWith('/admin/clients')) return 'clients'
   if (pathname.startsWith('/admin/projects') || pathname.startsWith('/admin/delivery')) return 'delivery'
-  if (pathname.startsWith('/admin/quotations')) return 'commercial'
+  if (pathname.startsWith('/admin/quotations') || pathname.startsWith('/admin/sales-sprint')) return 'commercial'
   if (pathname.startsWith('/admin/invoices') || pathname.startsWith('/admin/finance')) return 'finance'
   if (pathname.startsWith('/admin/support')) return 'support'
   if (pathname.startsWith('/admin/automation')) return 'automation'

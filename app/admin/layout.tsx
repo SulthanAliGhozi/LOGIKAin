@@ -19,6 +19,7 @@ const NAV = [
   { label: 'Media library', href: '/admin/media', group: 'CMS' },
   { label: 'SEO & redirects', href: '/admin/seo', group: 'CMS' },
   { label: 'Leads', href: '/admin/leads', group: 'CRM' },
+  { label: 'Sales Sprint', href: '/admin/sales-sprint', group: 'CRM' },
   { label: 'Clients', href: '/admin/clients', group: 'CRM' },
   { label: 'Projects', href: '/admin/projects', group: 'Delivery' },
   { label: 'Delivery workspace', href: '/admin/delivery/projects', group: 'Delivery' },
@@ -75,7 +76,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     if (item.href.includes('/leads')) return visible.has('leads')
     if (item.href.includes('/clients')) return visible.has('clients')
     if (item.href.includes('/projects') || item.href.includes('/delivery')) return visible.has('delivery')
-    if (item.href.includes('/quotations')) return visible.has('commercial')
+    if (item.href.includes('/quotations') || item.href.includes('/sales-sprint')) return visible.has('commercial')
     if (item.href.includes('/invoices') || item.href === '/admin/finance') return visible.has('finance')
     if (item.href.includes('/support')) return visible.has('support')
     if (item.href.includes('/automation')) return visible.has('automation')
