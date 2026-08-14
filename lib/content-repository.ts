@@ -9,13 +9,9 @@ const configured = process.env.NODE_ENV !== 'test' && Boolean(process.env.NEXT_P
 // generateStaticParams() which runs outside of any request context.
 // Wrapped in React cache() so parallel calls within the same render deduplicate.
 async function published<T extends ContentItem>(table: string, fallback: T[]): Promise<T[]> {
-  if (!configured) return fallback
-  try {
-    const supabase = createBrowserSupabaseClient()
-    const { data, error } = await supabase.from(table).select('*').eq('status', 'published').order('updated_at', { ascending: false })
-    if (error || !data?.length) return fallback
-    return data.map((row) => ({ slug: row.slug, name: row.name || row.title, summary: row.summary || row.excerpt || row.short_description || '', body: row.body || row.content || row.overview || '', tags: row.tags || [], seoTitle: row.seo_title || undefined, seoDescription: row.seo_description || undefined })) as unknown as T[]
-  } catch { return fallback }
+  // Temporary: Force using the local fallback (which has the updated Sprint products)
+  // instead of the old dummy data in Supabase.
+  return fallback
 }
 
 // cache() deduplicates identical calls within the same request/render tree
