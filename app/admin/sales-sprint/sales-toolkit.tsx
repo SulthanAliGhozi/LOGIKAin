@@ -2,17 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import { SprintCalculator } from './sprint-calculator'
-import { Responsive, WidthProvider } from 'react-grid-layout'
+import { Responsive, useContainerWidth } from 'react-grid-layout'
 
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
-
-const ResponsiveGridLayout = WidthProvider(Responsive)
 
 type Product = { name: string, price: number, slug: string, desc: string }
 
 export function SalesToolkit({ products }: { products: Product[] }) {
   const [isMounted, setIsMounted] = useState(false)
+  const [containerRef, containerWidth] = useContainerWidth()
   
   useEffect(() => {
     setIsMounted(true)
@@ -59,12 +58,13 @@ export function SalesToolkit({ products }: { products: Product[] }) {
   if (!isMounted) return <div className="animate-pulse flex space-x-4"><div className="flex-1 space-y-6 py-1"><div className="h-64 bg-black/10 rounded"></div></div></div>
 
   return (
-    <div className="-mx-4 sm:mx-0">
+    <div className="-mx-4 sm:mx-0" ref={containerRef as any}>
       <div className="mb-4 flex justify-between items-center text-xs text-black/50">
         <p>💡 Tip: Anda bisa menarik ujung kanan bawah panel untuk mengubah ukuran (resize), atau menahan *header* panel untuk menggeser letaknya (drag & drop).</p>
       </div>
 
-      <ResponsiveGridLayout
+      <Responsive
+        width={containerWidth}
         className="layout"
         layouts={defaultLayouts}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
@@ -173,7 +173,7 @@ export function SalesToolkit({ products }: { products: Product[] }) {
           </div>
         </div>
 
-      </ResponsiveGridLayout>
+      </Responsive>
     </div>
   )
 }
