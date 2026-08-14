@@ -281,12 +281,33 @@ Kelola semua konten publik website:
 
 ---
 
+### 🛒 B2C Store — `/admin/b2c-store`
+
+**Untuk role:** `commercial`, `admin`, `owner`
+
+- Manajemen katalog produk B2C.
+- **Full CRUD**: Tambah, edit (inline), dan hapus produk.
+- Sinkronisasi instan dengan halaman checkout publik.
+
+---
+
+### 💳 Payment Config (QRIS) — `/admin/payment-qris`
+
+**Untuk role:** `commercial`, `admin`, `owner`
+
+- Konfigurasi gateway pembayaran otomatis (QRIS).
+- Parsing payload QRIS dan manajemen kredensial payment provider secara aman.
+- (Sebelumnya berada di grup System Settings, sekarang dipindah ke Commerce agar lebih terstruktur).
+
+---
+
 ### 📁 Projects — `/admin/projects`
 
 **Untuk role:** `project_member`, `admin`, `owner`
 
 **Halaman list:**
 - Semua proyek dengan status, client, target selesai
+- **Full CRUD Project**: Anda dapat membuat, mengedit (nama, deskripsi, status), dan menghapus keseluruhan Project langsung dari antarmuka ini.
 
 **Halaman detail project (`/admin/projects/[id]`):**
 
@@ -323,6 +344,7 @@ View delivery-oriented dari semua proyek aktif — fokus pada progress milestone
 
 **Fitur:**
 - Buat quotation baru dengan nomor unik (misal: `QUO-2026-0001`)
+- **Full CRUD**: Edit data quotation secara bebas dan hapus bila diperlukan (selama status belum locked).
 - Tambah line items: deskripsi, jumlah, harga satuan
 - Total dihitung otomatis dari line items
 - Update status — setelah `accepted`, quote terkunci (tidak bisa edit langsung)
@@ -337,6 +359,7 @@ View delivery-oriented dari semua proyek aktif — fokus pada progress milestone
 **Status workflow:** `draft` → `issued` → `partially_paid` / `paid` / `overdue` / `void`
 
 **Halaman detail invoice (`/admin/invoices/[id]`):**
+- **Full CRUD**: Edit detail invoice, sinkronisasi project/client, atau hapus jika batal diterbitkan.
 - Tambah line items: deskripsi, jumlah, harga satuan
 - Record pembayaran: jumlah, provider, referensi
 - Status update otomatis: `partially_paid` kalau bayar sebagian, `paid` kalau lunas
@@ -363,6 +386,7 @@ Overview keuangan:
 
 **Halaman list:**
 - Semua ticket dengan filter status dan prioritas (`low`/`normal`/`high`/`urgent`)
+- **Full CRUD**: Tambahkan ticket manual, Edit rincian (subject, priority, status, deskripsi), dan Hapus ticket secara langsung dari baris tabel.
 
 **Halaman detail ticket (`/admin/support/[id]`):**
 - Thread percakapan lengkap
@@ -389,7 +413,10 @@ Monitor background jobs yang berjalan secara otomatis:
 | Support update | Status ticket berubah |
 | Route revalidation | Konten dipublish |
 
-Halaman ini **read-only** — untuk monitoring saja. Jobs diproses via `POST /api/automation/run`.
+**Fitur CRUD Automation:**
+- Monitor antrean (Queue)
+- **Retry job**: Jalankan ulang job yang mengalami `failed`.
+- **Delete job**: Hapus job yang menggantung atau tidak relevan.
 
 ---
 
