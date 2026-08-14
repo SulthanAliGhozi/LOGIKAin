@@ -1,4 +1,4 @@
-import { createClient } from '../../lib/supabase/server'
+import { createClient } from '../../../lib/supabase/server'
 import { FinanceForm, FinanceList } from '../../components/finance-forms'
 
 export default async function FinanceAdminPage() {
