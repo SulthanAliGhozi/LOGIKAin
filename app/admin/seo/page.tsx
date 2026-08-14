@@ -1,3 +1,81 @@
 import { createClient } from '../../../lib/supabase/server'
 import { RedirectForm } from './redirect-form'
-export default async function SeoAdminPage() { const supabase = await createClient(); const { data, error } = await supabase.from('redirects').select('source_path,target_path,status_code,reason,created_at').order('created_at', { ascending: false }); return <main className="min-h-screen bg-[#f3f0ea] p-6 text-[#171717] md:p-10"><a href="/admin" className="text-xs text-black/50">← Back to overview</a><div className="mt-10"><p className="mono text-[10px] text-[#b36f43]">LOGIKAin / GROWTH / SEO</p><h1 className="mt-3 text-4xl font-extrabold tracking-[-2px]">SEO & redirects</h1><p className="mt-2 text-sm text-black/50">Manage permanent URL changes while keeping canonical and sitemap integrity.</p></div><div className="mt-8"><RedirectForm /></div><div className="mt-8 overflow-x-auto border border-black/10 bg-white/50">{error ? <p className="p-6 text-sm text-red-700">Redirect table unavailable.</p> : <table className="w-full min-w-[700px] text-left text-xs"><thead className="border-b border-black/10 bg-black/5"><tr>{['source','target','status','reason'].map((x) => <th key={x} className="px-5 py-4 uppercase tracking-wider text-black/50">{x}</th>)}</tr></thead><tbody>{(data || []).map((row) => <tr key={row.source_path} className="border-b border-black/10"><td className="px-5 py-4 font-bold">{row.source_path}</td><td className="px-5 py-4">{row.target_path}</td><td className="px-5 py-4">{row.status_code}</td><td className="px-5 py-4">{row.reason || '—'}</td></tr>)}</tbody></table>}</div></main> }
+
+function StatusBadge({ code }: { code: number }) {
+  let color = 'bg-gray-100 text-gray-700'
+  if (code === 301) color = 'bg-blue-100 text-blue-800'
+  else if (code === 302) color = 'bg-amber-100 text-amber-800'
+  else if (code === 410) color = 'bg-red-100 text-red-800'
+  return <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-bold font-mono ${color}`}>{code}</span>
+}
+
+export default async function SeoAdminPage() { 
+  const supabase = await createClient(); 
+  const { data, error } = await supabase.from('redirects').select('source_path,target_path,status_code,reason,created_at').order('created_at', { ascending: false }); 
+  const count = data?.length || 0;
+
+  return (
+    <main className="min-h-screen bg-[#f3f0ea] p-6 text-[#171717] md:p-10">
+      <div className="flex items-center gap-2 text-xs font-medium text-black/50">
+        <a href="/admin" className="hover:text-[#b36f43] transition-colors">← Back</a>
+        <span>/</span>
+        <span>LOGIKAin</span>
+        <span>/</span>
+        <span className="text-[#b36f43]">GROWTH</span>
+      </div>
+      
+      <div className="mt-8 flex items-end justify-between">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight">SEO & Redirects</h1>
+          <p className="mt-2 text-sm text-black/50">Manage permanent URL changes while keeping canonical and sitemap integrity.</p>
+        </div>
+        <div className="text-sm font-medium text-black/50 bg-white/50 px-3 py-1 rounded-full border border-black/5">
+          {count} active redirects
+        </div>
+      </div>
+
+      <div className="mt-10 bg-white p-6 rounded-xl border border-black/10 shadow-sm">
+        <RedirectForm />
+      </div>
+
+      <div className="mt-10 overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
+        {error ? (
+          <div className="p-12 text-center text-sm text-red-700 bg-red-50">
+            Redirect table unavailable.
+          </div>
+        ) : count === 0 ? (
+          <div className="p-12 text-center text-sm text-black/50">
+            Belum ada redirect rule.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-sm">
+              <thead className="border-b border-black/10 bg-black/[0.02]">
+                <tr>
+                  {['Source Path', 'Target Path', 'Status', 'Reason'].map((x) => (
+                    <th key={x} className="px-6 py-4 font-semibold text-black/60">{x}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/5">
+                {(data || []).map((row) => (
+                  <tr key={row.source_path} className="hover:bg-black/[0.02] even:bg-black/[0.01] transition-colors">
+                    <td className="px-6 py-4 font-mono font-medium text-xs text-black/80">{row.source_path}</td>
+                    <td className="px-6 py-4 font-mono text-xs text-black/60">
+                      <div className="flex items-center gap-2">
+                        <span className="text-black/30">→</span>
+                        {row.target_path}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4"><StatusBadge code={row.status_code} /></td>
+                    <td className="px-6 py-4 text-black/60">{row.reason || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </main>
+  )
+}

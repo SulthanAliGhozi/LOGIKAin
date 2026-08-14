@@ -1,6 +1,7 @@
 import { createClient } from '../../lib/supabase/server'
 import { createPrivateDownloadUrl } from '../../lib/storage'
 import { PortalSupportForm, ApprovalDecision } from '../components/portal-forms'
+import { LogoutButton } from '../components/logout-button'
 
 const STAFF_ROLES = ['editor', 'sales', 'project_member', 'finance', 'support', 'admin', 'owner']
 
@@ -40,6 +41,7 @@ export default async function PortalPage() {
         <div className="flex items-center gap-4">
           {isStaff && <a href="/admin" className="text-xs text-white/60 hover:text-white">Admin ↗</a>}
           <span className="rounded-full border border-white/20 px-3 py-2 text-xs">Client portal</span>
+          <LogoutButton />
         </div>
       </header>
 

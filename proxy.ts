@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { adminPermissionForPath, canStaff } from './lib/auth/permissions'
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -9,7 +10,14 @@ export async function proxy(request: NextRequest) {
       setAll(cookiesToSet) { cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value)); response = NextResponse.next({ request }); cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options)) },
     },
   })
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+  const permission = adminPermissionForPath(request.nextUrl.pathname)
+  if (user && permission) {
+    const { data: profile } = await supabase.from('profiles').select('role,status').eq('id', user.id).maybeSingle()
+    if (!profile || profile.status !== 'active' || !canStaff(profile.role, permission)) {
+      return NextResponse.redirect(new URL('/admin?error=forbidden', request.url))
+    }
+  }
   return response
 }
 

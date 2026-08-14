@@ -55,7 +55,7 @@ create table if not exists public.profiles (
   username text,
   full_name text,
   avatar_url text,
-  role text not null default 'editor' check (role in ('editor','sales','project_member','finance','support','admin','owner')),
+  role text not null default 'client' check (role in ('client','editor','sales','project_member','finance','support','admin','owner')),
   status text not null default 'active' check (status in ('active','invited','suspended')),
   created_at timestamptz not null default now(), updated_at timestamptz not null default now()
 );
@@ -550,6 +550,8 @@ drop trigger if exists protect_invoice_history on public.invoices;
 create trigger protect_invoice_history before update on public.invoices for each row execute function public.protect_commercial_history();
 
 -- Normalize state machines to the final PRD vocabulary on fresh and upgraded databases.
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check check (role in ('client','editor','sales','project_member','finance','support','admin','owner'));
 alter table public.business_projects drop constraint if exists business_projects_status_check;
 alter table public.business_projects add constraint business_projects_status_check check (status in ('planned','active','on_hold','review','completed','cancelled','planning','archived'));
 alter table public.project_tasks drop constraint if exists project_tasks_status_check;
@@ -648,5 +650,56 @@ $$;
 
 drop trigger if exists on_auth_user_created_profile on auth.users;
 create trigger on_auth_user_created_profile after insert on auth.users for each row execute function public.handle_new_user_profile();
+
+-- Final RBAC policy pass. Earlier bootstrap policies are replaced here so
+-- database access matches the server-side permission matrix.
+drop policy if exists "staff can manage leads" on public.leads;
+create policy "staff can manage leads" on public.leads for all to authenticated using (public.has_role(array['sales','admin','owner'])) with check (public.has_role(array['sales','admin','owner']));
+drop policy if exists "staff can manage clients" on public.clients;
+create policy "staff can manage clients" on public.clients for all to authenticated using (public.has_role(array['sales','admin','owner'])) with check (public.has_role(array['sales','admin','owner']));
+drop policy if exists "staff can manage projects" on public.business_projects;
+create policy "staff can manage projects" on public.business_projects for all to authenticated using (public.has_role(array['project_member','admin','owner'])) with check (public.has_role(array['project_member','admin','owner']));
+drop policy if exists "staff can manage quotes" on public.quotes;
+create policy "staff can manage quotes" on public.quotes for all to authenticated using (public.has_role(array['sales','finance','admin','owner'])) with check (public.has_role(array['sales','finance','admin','owner']));
+drop policy if exists "staff can manage invoices" on public.invoices;
+create policy "staff can manage invoices" on public.invoices for all to authenticated using (public.has_role(array['finance','admin','owner'])) with check (public.has_role(array['finance','admin','owner']));
+drop policy if exists "staff can manage payments" on public.payments;
+create policy "staff can manage payments" on public.payments for all to authenticated using (public.has_role(array['finance','admin','owner'])) with check (public.has_role(array['finance','admin','owner']));
+drop policy if exists "staff can manage support tickets" on public.support_tickets;
+create policy "staff can manage support tickets" on public.support_tickets for all to authenticated using (public.has_role(array['support','admin','owner'])) with check (public.has_role(array['support','admin','owner']));
+drop policy if exists "staff can manage client memberships" on public.client_memberships;
+create policy "staff can manage client memberships" on public.client_memberships for all to authenticated using (public.has_role(array['sales','admin','owner'])) with check (public.has_role(array['sales','admin','owner']));
+drop policy if exists "staff can manage project files" on public.project_files;
+create policy "staff can manage project files" on public.project_files for all to authenticated using (public.has_role(array['project_member','admin','owner'])) with check (public.has_role(array['project_member','admin','owner']));
+drop policy if exists "staff can manage project approvals" on public.project_approvals;
+create policy "staff can manage project approvals" on public.project_approvals for all to authenticated using (public.has_role(array['project_member','admin','owner'])) with check (public.has_role(array['project_member','admin','owner']));
+drop policy if exists "staff can manage project comments" on public.project_comments;
+create policy "staff can manage project comments" on public.project_comments for all to authenticated using (public.has_role(array['project_member','admin','owner'])) with check (public.has_role(array['project_member','admin','owner']));
+drop policy if exists "staff can manage support messages" on public.support_messages;
+create policy "staff can manage support messages" on public.support_messages for all to authenticated using (public.has_role(array['support','admin','owner'])) with check (public.has_role(array['support','admin','owner']));
+drop policy if exists "staff can manage media assets" on public.media_assets;
+create policy "staff can manage media assets" on public.media_assets for all to authenticated using (public.has_role(array['editor','admin','owner'])) with check (public.has_role(array['editor','admin','owner']));
+drop policy if exists "staff can manage redirects" on public.redirects;
+create policy "staff can manage redirects" on public.redirects for all to authenticated using (public.has_role(array['editor','admin','owner'])) with check (public.has_role(array['editor','admin','owner']));
+drop policy if exists "staff can manage automation jobs" on public.automation_jobs;
+create policy "staff can manage automation jobs" on public.automation_jobs for all to authenticated using (public.has_role(array['admin','owner'])) with check (public.has_role(array['admin','owner']));
+
+-- Client portal read/write policies for the demo and production portal flows.
+drop policy if exists "members can read own quotes" on public.quotes;
+create policy "members can read own quotes" on public.quotes for select to authenticated using (exists (select 1 from public.client_memberships m where m.client_id = quotes.client_id and m.user_id = auth.uid() and m.status = 'active'));
+drop policy if exists "members can decide own quotes" on public.quotes;
+create policy "members can decide own quotes" on public.quotes for update to authenticated using (exists (select 1 from public.client_memberships m where m.client_id = quotes.client_id and m.user_id = auth.uid() and m.status = 'active')) with check (status in ('sent','viewed','accepted','rejected','revision_requested'));
+drop policy if exists "members can read own quote items" on public.quote_items;
+create policy "members can read own quote items" on public.quote_items for select to authenticated using (exists (select 1 from public.quotes q join public.client_memberships m on m.client_id = q.client_id where q.id = quote_items.quote_id and m.user_id = auth.uid() and m.status = 'active'));
+drop policy if exists "members can read own invoice items" on public.invoice_items;
+create policy "members can read own invoice items" on public.invoice_items for select to authenticated using (exists (select 1 from public.invoices i join public.client_memberships m on m.client_id = i.client_id where i.id = invoice_items.invoice_id and m.user_id = auth.uid() and m.status = 'active'));
+drop policy if exists "members can read own approvals" on public.project_approvals;
+create policy "members can read own approvals" on public.project_approvals for select to authenticated using (exists (select 1 from public.business_projects p join public.client_memberships m on m.client_id = p.client_id where p.id = project_approvals.project_id and m.user_id = auth.uid() and m.status = 'active'));
+drop policy if exists "members can decide own approvals" on public.project_approvals;
+create policy "members can decide own approvals" on public.project_approvals for update to authenticated using (exists (select 1 from public.business_projects p join public.client_memberships m on m.client_id = p.client_id where p.id = project_approvals.project_id and m.user_id = auth.uid() and m.status = 'active')) with check (status in ('pending','approved','changes_requested','cancelled'));
+drop policy if exists "members can create own feedback" on public.project_feedback;
+create policy "members can create own feedback" on public.project_feedback for insert to authenticated with check (author_user_id = auth.uid() and visibility = 'client' and exists (select 1 from public.business_projects p join public.client_memberships m on m.client_id = p.client_id where p.id = project_feedback.project_id and m.user_id = auth.uid() and m.status = 'active'));
+drop policy if exists "members can create own support tickets" on public.support_tickets;
+create policy "members can create own support tickets" on public.support_tickets for insert to authenticated with check (exists (select 1 from public.client_memberships m where m.client_id = support_tickets.client_id and m.user_id = auth.uid() and m.status = 'active'));
 
 commit;

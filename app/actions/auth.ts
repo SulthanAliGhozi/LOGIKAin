@@ -59,12 +59,14 @@ export async function signUp(_: LoginState, formData: FormData): Promise<LoginSt
   }
   if (!created.user) return { error: 'Registrasi gagal. Silakan coba lagi.' }
 
-  // Masukkan ke tabel profiles
+  // Masukkan ke tabel profiles — role 'project_member' (staff level terendah)
+  // Note: self-register user masih bisa akses /admin sebagai project_member.
+  // Untuk flow client murni (tidak boleh akses admin), gunakan /admin/users + /admin/clients.
   const { error: profileError } = await admin.from('profiles').upsert({
     id: created.user.id,
     username: parsed.data.username,
     full_name: parsed.data.full_name,
-    role: 'editor',
+    role: 'project_member',
     status: 'active',
     updated_at: new Date().toISOString(),
   })
@@ -84,4 +86,10 @@ export async function signUp(_: LoginState, formData: FormData): Promise<LoginSt
   }
 
   redirect('/portal')
+}
+
+export async function signOut() {
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+  redirect('/login')
 }
