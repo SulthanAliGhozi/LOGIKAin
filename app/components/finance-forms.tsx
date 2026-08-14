@@ -4,10 +4,24 @@ import { useState, useTransition } from 'react'
 import { createInvoice, createQuote, recordPayment, updateInvoice, updateQuote } from '../actions/admin'
 import { AdminActionGroup, AdminEditIcon, AdminDeleteIcon, AdminViewIcon } from './admin-actions'
 
-export function FinanceForm({ type, initialData }: { type: 'quote' | 'invoice' | 'payment', initialData?: any }) {
-  const [pending, startTransition] = useTransition(); 
+type FinanceData = {
+  id?: string;
+  invoice_number?: string;
+  quote_number?: string;
+  client_id?: string;
+  lead_id?: string;
+  project_id?: string;
+  total_minor?: number;
+  issued_at?: string;
+  due_at?: string;
+  valid_until?: string;
+  status?: string;
+};
+
+export function FinanceForm({ type, initialData }: { type: 'quote' | 'invoice' | 'payment', initialData?: FinanceData }) {
+  const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState('')
-  const isEdit = !!initialData;
+  const isEdit = !!initialData?.id;
 
   return (
     <div className="border border-black/10 bg-white/50 p-5">
@@ -27,8 +41,8 @@ export function FinanceForm({ type, initialData }: { type: 'quote' | 'invoice' |
               }
               setMessage('Saved.'); 
               if (!isEdit) (event.currentTarget as HTMLFormElement).reset();
-            } catch (err: any) { 
-              setMessage('Could not save record: ' + err.message);
+            } catch (err: unknown) { 
+              setMessage('Could not save record: ' + (err instanceof Error ? err.message : String(err)));
             } 
           }) 
         }}>
@@ -56,7 +70,7 @@ export function FinanceForm({ type, initialData }: { type: 'quote' | 'invoice' |
   )
 }
 
-export function FinanceList({ type, data }: { type: 'quote' | 'invoice', data: any[] }) {
+export function FinanceList({ type, data }: { type: 'quote' | 'invoice', data: FinanceData[] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[640px] text-left text-xs">
@@ -85,7 +99,7 @@ export function FinanceList({ type, data }: { type: 'quote' | 'invoice', data: a
                 <AdminActionGroup>
                   <AdminViewIcon href={`/admin/${type === 'quote' ? 'quotations' : 'invoices'}/${row.id}`} />
                   <AdminEditIcon href={`/admin/${type === 'quote' ? 'quotations' : 'invoices'}/${row.id}/edit`} />
-                  <AdminDeleteIcon id={row.id} kind={type} />
+                  {row.id && <AdminDeleteIcon id={row.id} kind={type} />}
                 </AdminActionGroup>
               </td>
             </tr>

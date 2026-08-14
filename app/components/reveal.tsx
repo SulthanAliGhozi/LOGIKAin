@@ -41,3 +41,13 @@ export function ParallaxHero({ children }: { children: React.ReactNode }) {
     </motion.div>
   )
 }
+
+export function HoverCTA({ children, href, className, variant = 'primary' }: { children: React.ReactNode; href: string; className?: string; variant?: 'primary' | 'secondary' }) {
+  return (
+    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-block">
+      <a href={href} className={className}>
+        {children}
+      </a>
+    </motion.div>
+  )
+}

@@ -1,5 +1,5 @@
 import { createClient } from '../../../lib/supabase/server'
-import { FinanceForm, FinanceList } from '../../components/finance-forms'
+import { FinanceList } from '../../components/finance-forms'
 import Link from 'next/link'
 
 export default async function FinanceAdminPage() {
@@ -27,21 +27,17 @@ export default async function FinanceAdminPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3 mb-10">
-        <div className="bg-white p-6 rounded-xl border border-black/10 shadow-sm">
-          <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-black/50">New Quote</h3>
-          <FinanceForm type="quote" />
-        </div>
-        <div className="bg-white p-6 rounded-xl border border-black/10 shadow-sm">
-          <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-black/50">New Invoice</h3>
-          <FinanceForm type="invoice" />
-        </div>
-        <div className="bg-white p-6 rounded-xl border border-black/10 shadow-sm">
-          <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-black/50">Record Payment</h3>
-          <FinanceForm type="payment" />
-        </div>
+      <div className="flex flex-wrap gap-4 mb-10">
+        <Link href="/admin/quotations/new" className="inline-flex items-center justify-center bg-[#171717] px-6 py-3 text-sm font-bold text-[#f3f0ea] hover:bg-black/80 transition-colors rounded-lg shadow-sm">
+          + New Quotation
+        </Link>
+        <Link href="/admin/invoices/new" className="inline-flex items-center justify-center bg-[#171717] px-6 py-3 text-sm font-bold text-[#f3f0ea] hover:bg-black/80 transition-colors rounded-lg shadow-sm">
+          + New Invoice
+        </Link>
+        <Link href="/admin/finance/payments/new" className="inline-flex items-center justify-center bg-white border border-black/10 px-6 py-3 text-sm font-bold text-black/70 hover:text-black transition-colors rounded-lg shadow-sm">
+          Record Payment
+        </Link>
       </div>
-
       <div className="space-y-10">
         <div>
           <h2 className="mb-4 text-xl font-bold tracking-tight">Invoices</h2>

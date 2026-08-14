@@ -14,7 +14,7 @@ async function published<T extends ContentItem>(table: string, fallback: T[]): P
     const supabase = createBrowserSupabaseClient()
     const { data, error } = await supabase.from(table).select('*').eq('status', 'published').order('updated_at', { ascending: false })
     if (error || !data?.length) return fallback
-    return data.map((row) => ({ slug: row.slug, name: row.name || row.title, summary: row.summary || row.excerpt || row.short_description || '', body: row.body || row.content || row.overview || '', tags: row.tags || [], seoTitle: row.seo_title || undefined, seoDescription: row.seo_description || undefined })) as unknown as T[]
+    return data.map((row) => ({ slug: row.slug, name: row.name || row.title, summary: row.summary || row.excerpt || row.short_description || '', body: row.body || row.content || row.overview || '', tags: row.tags || [], seoTitle: row.seo_title || undefined, seoDescription: row.seo_description || undefined, image: row.image_url || row.cover_image || row.image || undefined })) as unknown as T[]
   } catch { return fallback }
 }
 

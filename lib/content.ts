@@ -1,4 +1,4 @@
-export type ContentItem = { slug: string; name: string; summary: string; body: string; tags: string[]; seoTitle?: string; seoDescription?: string }
+export type ContentItem = { slug: string; name: string; summary: string; body: string; tags: string[]; seoTitle?: string; seoDescription?: string; image?: string }
 
 export const services: ContentItem[] = [
   // Lini Pragmatis (Dari Sprint)

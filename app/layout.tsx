@@ -15,12 +15,17 @@ export const metadata: Metadata = {
   title: { default: 'LOGIKAin — Yang rumit, kami LOGIKAin.', template: '%s | LOGIKAin' },
   description: 'LOGIKAin membantu bisnis mengubah proses yang berantakan menjadi sistem digital yang mudah dipahami, siap dipakai, dan punya arah.',
   keywords: ['logikain', 'LOGIKAin', 'jasa pembuatan website', 'software house', 'digital agency', 'sistem informasi', 'web app', 'aplikasi web', 'otomatisasi bisnis'],
+  authors: [{ name: 'LOGIKAin Team', url: siteUrl }],
+  creator: 'LOGIKAin',
+  publisher: 'LOGIKAin',
+  formatDetection: { email: false, address: false, telephone: false },
   alternates: { canonical: '/' },
   icons: { icon: '/icon.png', apple: '/icon.png' },
-  openGraph: { type: 'website', locale: 'id_ID', url: siteUrl, siteName: 'LOGIKAin', title: 'Yang rumit, kami LOGIKAin.', description: 'Digital partner untuk bisnis yang bergerak.', images: ['/opengraph-image'] },
-  twitter: { card: 'summary_large_image', title: 'LOGIKAin — Yang rumit, kami LOGIKAin.', description: 'Digital partner untuk bisnis yang bergerak.', images: ['/opengraph-image'] },
-  robots: { index: true, follow: true },
+  openGraph: { type: 'website', locale: 'id_ID', url: siteUrl, siteName: 'LOGIKAin', title: 'LOGIKAin — Yang rumit, kami LOGIKAin.', description: 'Digital partner untuk bisnis yang bergerak.', images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'LOGIKAin' }] },
+  twitter: { card: 'summary_large_image', title: 'LOGIKAin — Yang rumit, kami LOGIKAin.', description: 'Digital partner untuk bisnis yang bergerak.', images: ['/opengraph-image'], creator: '@logikain' },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large', 'max-snippet': -1 } },
   verification: { google: 'vd89hi2bFvrnSi81pgVIb4CobTBGOp3F8na_P22qV3s' },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'LOGIKAin' },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

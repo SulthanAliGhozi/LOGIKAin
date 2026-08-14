@@ -3,7 +3,7 @@ import { BusinessDiagnostic } from './components/business-diagnostic'
 import { ContactForm } from './components/contact-form'
 import { Nav } from './components/nav'
 import { Footer } from './components/footer'
-import { Reveal, ParallaxHero } from './components/reveal'
+import { Reveal, ParallaxHero, HoverCTA } from './components/reveal'
 import { getIndustries, getInsights, getProjects, getServices, getTestimonials } from '../lib/content-repository'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://logikain.id'
@@ -27,7 +27,7 @@ export default async function Home() {
             <p className="mt-8 max-w-xl text-base leading-8 text-muted">Kami merapikan proses, membangun produk digital, dan mengotomatisasi pekerjaan berulang—supaya tim Anda bisa bekerja lebih jelas dan bisnis bergerak lebih cepat.</p>
           </Reveal>
           <Reveal delay={0.4}>
-            <div className="mt-9 flex flex-wrap gap-4"><Link href="/start-project" className="bg-ink px-5 py-4 text-xs font-bold text-paper hover:bg-orange transition-colors group">Ceritakan tantangan Anda <span className="ml-2 inline-block transition-transform group-hover:translate-x-1">↗</span></Link><Link href="/services" className="border-b border-ink pb-2 text-xs font-bold hover:text-orange transition-colors group">Lihat solusi <span className="ml-2 inline-block transition-transform group-hover:translate-y-1">↓</span></Link></div>
+            <div className="mt-9 flex flex-wrap gap-4"><HoverCTA href="/start-project" className="bg-ink px-5 py-4 text-xs font-bold text-paper hover:bg-orange transition-colors group flex items-center">Ceritakan tantangan Anda <span className="ml-2 inline-block transition-transform group-hover:translate-x-1">↗</span></HoverCTA><HoverCTA href="/services" className="border-b border-ink pb-2 text-xs font-bold hover:text-orange transition-colors group flex items-center">Lihat solusi <span className="ml-2 inline-block transition-transform group-hover:translate-y-1">↓</span></HoverCTA></div>
           </Reveal>
           <Reveal delay={0.5}>
             <div className="mt-12 grid max-w-xl grid-cols-3 gap-4 border-t border-line pt-5 text-xs"><span><b className="block text-xl">01</b><span className="text-muted">Understand</span></span><span><b className="block text-xl">02</b><span className="text-muted">Build</span></span><span><b className="block text-xl">03</b><span className="text-muted">Improve</span></span></div>
