@@ -21,6 +21,7 @@ const NAV = [
   { label: 'Leads', href: '/admin/leads', group: 'CRM' },
   { label: 'Sales Sprint', href: '/admin/sales-sprint', group: 'CRM' },
   { label: 'Clients', href: '/admin/clients', group: 'CRM' },
+  { label: 'B2C Store', href: '/admin/b2c-store', group: 'Commerce' },
   { label: 'Projects', href: '/admin/projects', group: 'Delivery' },
   { label: 'Delivery workspace', href: '/admin/delivery/projects', group: 'Delivery' },
   { label: 'Quotations', href: '/admin/quotations', group: 'Finance' },
@@ -65,6 +66,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const groups = [
     { label: 'CMS & Website', icon: '✦', permissions: ['content', 'media', 'seo'], items: NAV.filter((n) => n.group === 'CMS') },
     { label: 'CRM & Sales', icon: '◈', permissions: ['leads', 'clients'], items: NAV.filter((n) => n.group === 'CRM') },
+    { label: 'Commerce', icon: '🛒', permissions: ['commercial'], items: NAV.filter((n) => n.group === 'Commerce') },
     { label: 'Delivery', icon: '◉', permissions: ['delivery'], items: NAV.filter((n) => n.group === 'Delivery') },
     { label: 'Finance', icon: '◎', permissions: ['commercial', 'finance'], items: NAV.filter((n) => n.group === 'Finance') },
     { label: 'Support', icon: '⊕', permissions: ['support'], items: NAV.filter((n) => n.group === 'Support') },
@@ -76,7 +78,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     if (item.href.includes('/leads')) return visible.has('leads')
     if (item.href.includes('/clients')) return visible.has('clients')
     if (item.href.includes('/projects') || item.href.includes('/delivery')) return visible.has('delivery')
-    if (item.href.includes('/quotations') || item.href.includes('/sales-sprint')) return visible.has('commercial')
+    if (item.href.includes('/quotations') || item.href.includes('/sales-sprint') || item.href.includes('/b2c-store')) return visible.has('commercial')
     if (item.href.includes('/invoices') || item.href === '/admin/finance') return visible.has('finance')
     if (item.href.includes('/support')) return visible.has('support')
     if (item.href.includes('/automation')) return visible.has('automation')
