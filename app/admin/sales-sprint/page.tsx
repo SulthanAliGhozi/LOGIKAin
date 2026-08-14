@@ -1,5 +1,5 @@
 import { createClient } from '../../../lib/supabase/server'
-import { SprintCalculator } from './sprint-calculator'
+import { SalesToolkit } from './sales-toolkit'
 
 export default async function SalesSprintPage() {
   const supabase = await createClient()
@@ -18,14 +18,14 @@ export default async function SalesSprintPage() {
         <span className="text-[#b36f43]">SALES SPRINT</span>
       </div>
       
-      <div className="mt-8">
-        <h1 className="text-4xl font-extrabold tracking-tight">Sales Sprint Target</h1>
+      <div className="mt-8 mb-6">
+        <h1 className="text-4xl font-extrabold tracking-tight">Sales Enablement Toolkit</h1>
         <p className="mt-2 text-sm text-black/50 max-w-2xl">
-          Alat hitung target (KPI) khusus tim Sales. Masukkan target omset bulanan atau mingguan, dan sistem akan memecahnya menjadi target harian per produk (B2B dan B2C).
+          Dasbor khusus tim Sales. Di sini Anda bisa memecah target omset menjadi aksi harian, mencari prospek dengan Market Finder, hingga membuat pesan penawaran otomatis.
         </p>
       </div>
 
-      <SprintCalculator products={products} />
+      <SalesToolkit products={products} />
 
     </main>
   )
