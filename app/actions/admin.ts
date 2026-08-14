@@ -193,6 +193,26 @@ export async function updateTicketStatus(id: string, status: string) {
   await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'support_ticket', entity_id: id, action: 'status_changed', metadata: { status: validStatus } }); if (process.env.SUPABASE_SERVICE_ROLE_KEY) { try { await enqueueAutomationJobAdmin({ type: 'support_update', payload: { ticket_id: id }, idempotency_key: `support-update:${id}:${validStatus}:${Date.now()}` }) } catch { /* Support status remains saved if email queue is unavailable. */ } } revalidatePath('/admin/support'); revalidatePath('/portal')
 }
 
+export async function createTicket(input: unknown) {
+  const data = z.object({ subject: z.string().min(2), description: z.string().min(2), priority: z.enum(['low','medium','high','urgent']).default('medium') }).parse(input); const { supabase, user } = await staffClient('support');
+  const reference = `TKT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  const { data: ticket, error } = await supabase.from('support_tickets').insert({ ...data, reference, status: 'open' }).select('id').single(); if (error) throw new Error(error.message);
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'support_ticket', entity_id: ticket.id, action: 'created' }); revalidatePath('/admin/support'); return ticket;
+}
+
+export async function updateTicket(input: unknown) {
+  const data = z.object({ id: z.string().uuid(), subject: z.string().min(2), description: z.string().min(2), priority: z.enum(['low','medium','high','urgent']).default('medium') }).parse(input);
+  const { id, ...fields } = data; const { supabase, user } = await staffClient('support');
+  const { error } = await supabase.from('support_tickets').update({ ...fields, updated_at: new Date().toISOString() }).eq('id', id); if (error) throw new Error(error.message);
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'support_ticket', entity_id: id, action: 'updated' }); revalidatePath('/admin/support');
+}
+
+export async function deleteTicket(id: string) {
+  const ticketId = z.string().uuid().parse(id); const { supabase, user } = await staffClient('support');
+  const { error } = await supabase.from('support_tickets').delete().eq('id', ticketId); if (error) throw new Error(error.message);
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'support_ticket', entity_id: ticketId, action: 'deleted' }); revalidatePath('/admin/support');
+}
+
 export async function addSupportMessage(input: unknown) {
   const data = z.object({ ticket_id: z.string().uuid(), body: z.string().min(1), visibility: z.enum(['internal','client']).default('client') }).parse(input); const { supabase, user } = await staffClient('support')
   const { data: message, error } = await supabase.from('support_messages').insert({ ...data, author_user_id: user.id }).select('id').single()
@@ -228,8 +248,27 @@ export async function convertLeadToClient(leadId: string) {
 }
 
 export async function createQuote(input: unknown) {
-  const data = z.object({ quote_number: z.string().min(3), lead_id: z.string().uuid().optional(), client_id: z.string().uuid().optional(), currency: z.string().length(3).default('IDR'), total_minor: z.number().int().nonnegative(), valid_until: z.string().optional() }).parse(input); const { supabase, user } = await staffClient('commercial')
-  const { data: quote, error } = await supabase.from('quotes').insert(data).select('id').single(); if (error) throw new Error(error.message); await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'quote', entity_id: quote.id, action: 'created' }); revalidatePath('/admin/finance'); return quote
+  const data = z.object({ quote_number: z.string().min(3), lead_id: z.string().uuid().optional().or(z.literal('')), client_id: z.string().uuid().optional().or(z.literal('')), currency: z.string().length(3).default('IDR'), total_minor: z.number().int().nonnegative(), valid_until: z.string().optional().or(z.literal('')) }).parse(input); const { supabase, user } = await staffClient('commercial')
+  const { data: quote, error } = await supabase.from('quotes').insert({ ...data, lead_id: data.lead_id || null, client_id: data.client_id || null, valid_until: data.valid_until || null }).select('id').single(); if (error) throw new Error(error.message); await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'quote', entity_id: quote.id, action: 'created' }); revalidatePath('/admin/finance'); return quote
+}
+
+export async function updateQuote(input: unknown) {
+  const data = z.object({ id: z.string().uuid(), quote_number: z.string().min(3), lead_id: z.string().uuid().optional().or(z.literal('')), client_id: z.string().uuid().optional().or(z.literal('')), currency: z.string().length(3).default('IDR'), total_minor: z.number().int().nonnegative(), valid_until: z.string().optional().or(z.literal('')) }).parse(input); 
+  const { id, ...fields } = data;
+  const { supabase, user } = await staffClient('commercial');
+  const { error } = await supabase.from('quotes').update({ ...fields, lead_id: fields.lead_id || null, client_id: fields.client_id || null, valid_until: fields.valid_until || null, updated_at: new Date().toISOString() }).eq('id', id);
+  if (error) throw new Error(error.message);
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'quote', entity_id: id, action: 'updated' });
+  revalidatePath('/admin/finance');
+}
+
+export async function deleteQuote(id: string) {
+  const quoteId = z.string().uuid().parse(id);
+  const { supabase, user } = await staffClient('commercial');
+  const { error } = await supabase.from('quotes').delete().eq('id', quoteId);
+  if (error) throw new Error(error.message);
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'quote', entity_id: quoteId, action: 'deleted' });
+  revalidatePath('/admin/finance');
 }
 
 export async function updateQuoteStatus(id: string, status: string) {
@@ -237,7 +276,26 @@ export async function updateQuoteStatus(id: string, status: string) {
 }
 
 export async function createInvoice(input: unknown) {
-  const data = z.object({ invoice_number: z.string().min(3), client_id: z.string().uuid(), project_id: z.string().uuid().optional(), currency: z.string().length(3).default('IDR'), total_minor: z.number().int().positive(), issued_at: z.string().optional(), due_at: z.string().optional() }).parse(input); const { supabase, user } = await staffClient('finance'); const { data: invoice, error } = await supabase.from('invoices').insert({ ...data, status: data.issued_at ? 'issued' : 'draft' }).select('id').single(); if (error) throw new Error(error.message); await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'invoice', entity_id: invoice.id, action: 'created' }); if (data.due_at && process.env.SUPABASE_SERVICE_ROLE_KEY) { try { await enqueueAutomationJobAdmin({ type: 'invoice_due_reminder', payload: { invoice_id: invoice.id }, run_at: `${data.due_at}T09:00:00.000Z`, idempotency_key: `invoice-due:${invoice.id}` }) } catch { /* Invoice remains created if reminder scheduling is unavailable. */ } } revalidatePath('/admin/finance'); revalidatePath('/portal'); return invoice
+  const data = z.object({ invoice_number: z.string().min(3), client_id: z.string().uuid(), project_id: z.string().uuid().optional().or(z.literal('')), currency: z.string().length(3).default('IDR'), total_minor: z.number().int().positive(), issued_at: z.string().optional().or(z.literal('')), due_at: z.string().optional().or(z.literal('')) }).parse(input); const { supabase, user } = await staffClient('finance'); const { data: invoice, error } = await supabase.from('invoices').insert({ ...data, project_id: data.project_id || null, issued_at: data.issued_at || null, due_at: data.due_at || null, status: data.issued_at ? 'issued' : 'draft' }).select('id').single(); if (error) throw new Error(error.message); await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'invoice', entity_id: invoice.id, action: 'created' }); if (data.due_at && process.env.SUPABASE_SERVICE_ROLE_KEY) { try { await enqueueAutomationJobAdmin({ type: 'invoice_due_reminder', payload: { invoice_id: invoice.id }, run_at: `${data.due_at}T09:00:00.000Z`, idempotency_key: `invoice-due:${invoice.id}` }) } catch { /* Invoice remains created if reminder scheduling is unavailable. */ } } revalidatePath('/admin/finance'); revalidatePath('/portal'); return invoice
+}
+
+export async function updateInvoice(input: unknown) {
+  const data = z.object({ id: z.string().uuid(), invoice_number: z.string().min(3), client_id: z.string().uuid(), project_id: z.string().uuid().optional().or(z.literal('')), currency: z.string().length(3).default('IDR'), total_minor: z.number().int().positive(), issued_at: z.string().optional().or(z.literal('')), due_at: z.string().optional().or(z.literal('')) }).parse(input); 
+  const { id, ...fields } = data;
+  const { supabase, user } = await staffClient('finance');
+  const { error } = await supabase.from('invoices').update({ ...fields, project_id: fields.project_id || null, issued_at: fields.issued_at || null, due_at: fields.due_at || null, updated_at: new Date().toISOString() }).eq('id', id);
+  if (error) throw new Error(error.message);
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'invoice', entity_id: id, action: 'updated' });
+  revalidatePath('/admin/finance');
+}
+
+export async function deleteInvoice(id: string) {
+  const invoiceId = z.string().uuid().parse(id);
+  const { supabase, user } = await staffClient('finance');
+  const { error } = await supabase.from('invoices').delete().eq('id', invoiceId);
+  if (error) throw new Error(error.message);
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'invoice', entity_id: invoiceId, action: 'deleted' });
+  revalidatePath('/admin/finance');
 }
 
 export async function updateUserRole(userId: string, role: string) {
@@ -413,4 +471,18 @@ export async function updateClientRecord(input: unknown) {
 
 export async function deleteClientRecord(id: string) {
   const clientId = z.string().uuid().parse(id); const { supabase, user } = await staffClient('clients'); const { error } = await supabase.from('clients').delete().eq('id', clientId); if (error) throw new Error(error.message); await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'client', entity_id: clientId, action: 'deleted' }); revalidatePath('/admin/clients')
+}
+
+export async function deleteAutomationJob(id: string) {
+  const jobId = z.string().uuid().parse(id); const { supabase, user } = await staffClient('settings');
+  const { error } = await supabase.from('automation_jobs').delete().eq('id', jobId);
+  if (error) throw new Error(error.message);
+  revalidatePath('/admin/automation')
+}
+
+export async function retryAutomationJob(id: string) {
+  const jobId = z.string().uuid().parse(id); const { supabase, user } = await staffClient('settings');
+  const { error } = await supabase.from('automation_jobs').update({ status: 'pending', attempts: 0, last_error: null, run_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', jobId);
+  if (error) throw new Error(error.message);
+  revalidatePath('/admin/automation')
 }

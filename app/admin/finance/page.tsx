@@ -1,7 +1,14 @@
-import { AdminTableModule } from '../../components/admin-module'
-import { FinanceForm } from '../../components/finance-forms'
+import { createClient } from '../../lib/supabase/server'
+import { FinanceForm, FinanceList } from '../../components/finance-forms'
 
-export default function FinanceAdminPage() {
+export default async function FinanceAdminPage() {
+  const supabase = await createClient()
+  const { data: invoicesData } = await supabase.from('invoices').select('*').order('created_at', { ascending: false }).limit(50)
+  const { data: quotesData } = await supabase.from('quotes').select('*').order('created_at', { ascending: false }).limit(50)
+  
+  const invoices = invoicesData || []
+  const quotes = quotesData || []
+
   return (
     <main className="min-h-screen bg-[#f3f0ea] p-6 text-[#171717] md:p-10">
       <div className="flex items-center gap-2 text-xs font-medium text-black/50">
@@ -34,14 +41,23 @@ export default function FinanceAdminPage() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
-        <div className="p-2">
-          <AdminTableModule 
-            title="Invoices" 
-            eyebrow="FINANCE" 
-            table="invoices" 
-            columns={['invoice_number','client_id','status','total_minor','due_at']} 
-          />
+      <div className="space-y-10">
+        <div>
+          <h2 className="mb-4 text-xl font-bold tracking-tight">Invoices</h2>
+          <div className="overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
+            <div className="p-2">
+              <FinanceList type="invoice" data={invoices} />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="mb-4 text-xl font-bold tracking-tight">Quotations</h2>
+          <div className="overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
+            <div className="p-2">
+              <FinanceList type="quote" data={quotes} />
+            </div>
+          </div>
         </div>
       </div>
     </main>

@@ -1,6 +1,5 @@
 import { createClient } from '../../../lib/supabase/server'
 import { SettingForm } from './setting-form'
-import { QrisUploader } from './qris-uploader'
 export default async function SettingsPage() { 
   const supabase = await createClient(); 
   const { data, error } = await supabase.from('site_settings').select('key,value').order('key'); 
@@ -59,10 +58,6 @@ export default async function SettingsPage() {
           </>
         )}
         
-        {/* Dynamic QRIS Extractor */}
-        {!error && (
-          <QrisUploader initialPayload={data?.find(r => r.key === 'payment_qris_payload')?.value || ''} />
-        )}
       </div>
     </main>
   )

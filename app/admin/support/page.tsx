@@ -1,5 +1,6 @@
 import { createClient } from '../../../lib/supabase/server'
 import { SupportTicketActions } from '../../components/support-ticket-actions'
+import { CreateSupportTicket } from '../../components/create-support-ticket'
 
 function StatusBadge({ status }: { status: string }) {
   const s = status.toLowerCase()
@@ -44,8 +45,11 @@ export default async function SupportAdminPage() {
           <h1 className="text-4xl font-extrabold tracking-tight">Support operations</h1>
           <p className="mt-2 text-sm text-black/50">Manage ticket status and communicate with clients from one workspace.</p>
         </div>
-        <div className="text-sm font-medium text-black/50 bg-white/50 px-3 py-1 rounded-full border border-black/5">
-          {count} active tickets
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-sm font-medium text-black/50 bg-white/50 px-3 py-1 rounded-full border border-black/5">
+            {count} active tickets
+          </div>
+          <CreateSupportTicket />
         </div>
       </div>
 
@@ -80,7 +84,7 @@ export default async function SupportAdminPage() {
                     <td className="px-6 py-4"><StatusBadge status={ticket.status} /></td>
                     <td className="px-6 py-4 text-black/60">{formatDate(ticket.created_at)}</td>
                     <td className="px-6 py-4 min-w-[280px]">
-                      <SupportTicketActions ticketId={ticket.id} status={ticket.status} />
+                      <SupportTicketActions ticketId={ticket.id} status={ticket.status} subject={ticket.subject} description={ticket.description} priority={ticket.priority} />
                     </td>
                   </tr>
                 ))}

@@ -1,9 +1,116 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { createInvoice, createQuote, recordPayment } from '../actions/admin'
+import { createInvoice, createQuote, recordPayment, updateInvoice, updateQuote, deleteInvoice, deleteQuote } from '../actions/admin'
 
-export function FinanceForm({ type }: { type: 'quote' | 'invoice' | 'payment' }) {
-  const [open, setOpen] = useState(false); const [pending, startTransition] = useTransition(); const [message, setMessage] = useState('')
-  return <div className="border border-black/10 bg-white/50 p-5"><button onClick={() => setOpen(!open)} className="text-xs font-bold text-[#b36f43]">{open ? '− Close' : `+ New ${type}`}</button>{open && <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={(event) => { event.preventDefault(); const raw = Object.fromEntries(new FormData(event.currentTarget)); startTransition(async () => { try { if (type === 'quote') await createQuote({ ...raw, total_minor: Number(raw.total_minor) }); else if (type === 'invoice') await createInvoice({ ...raw, total_minor: Number(raw.total_minor) }); else await recordPayment({ ...raw, amount_minor: Number(raw.amount_minor) }); setMessage('Saved.'); (event.currentTarget as HTMLFormElement).reset() } catch { setMessage('Could not save record.') } }) }}><input required name={type === 'payment' ? 'invoice_id' : type === 'quote' ? 'quote_number' : 'invoice_number'} placeholder={type === 'payment' ? 'Invoice ID' : `${type} number`} className="border border-black/15 bg-transparent px-3 py-3 text-xs" />{type !== 'payment' && <input required name="client_id" placeholder="Client ID" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />}{type === 'quote' && <input name="lead_id" placeholder="Lead ID (optional)" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />}{type === 'invoice' && <input name="project_id" placeholder="Project ID (optional)" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />}<input required type="number" min="0" name={type === 'payment' ? 'amount_minor' : 'total_minor'} placeholder="Amount in minor units" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />{type === 'invoice' ? <><input name="issued_at" type="date" aria-label="Issue date" className="border border-black/15 bg-transparent px-3 py-3 text-xs" /><input name="due_at" type="date" aria-label="Due date" className="border border-black/15 bg-transparent px-3 py-3 text-xs" /></> : <input name="valid_until" type="date" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />}<button disabled={pending} className="w-fit bg-[#171717] px-4 py-3 text-xs font-bold text-[#f3f0ea]">{pending ? 'Saving...' : 'Save'}</button>{message && <p className="text-xs text-[#b36f43] sm:col-span-2">{message}</p>}</form>}</div>
+export function FinanceForm({ type, initialData }: { type: 'quote' | 'invoice' | 'payment', initialData?: any }) {
+  const [open, setOpen] = useState(!!initialData); 
+  const [pending, startTransition] = useTransition(); 
+  const [message, setMessage] = useState('')
+  const isEdit = !!initialData;
+
+  const handleDelete = () => {
+    if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
+    startTransition(async () => {
+      try {
+        if (type === 'quote') await deleteQuote(initialData.id);
+        else if (type === 'invoice') await deleteInvoice(initialData.id);
+        setMessage('Deleted successfully.');
+      } catch (err: any) {
+        setMessage('Could not delete: ' + err.message);
+      }
+    })
+  }
+
+  return (
+    <div className="border border-black/10 bg-white/50 p-5">
+      <button onClick={() => setOpen(!open)} className="text-xs font-bold text-[#b36f43]">
+        {open ? '− Close' : isEdit ? `Edit ${type}` : `+ New ${type}`}
+      </button>
+      {open && (
+        <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={(event) => { 
+          event.preventDefault(); 
+          const raw = Object.fromEntries(new FormData(event.currentTarget)); 
+          startTransition(async () => { 
+            try { 
+              if (type === 'quote') {
+                if (isEdit) await updateQuote({ id: initialData.id, ...raw, total_minor: Number(raw.total_minor) });
+                else await createQuote({ ...raw, total_minor: Number(raw.total_minor) }); 
+              } else if (type === 'invoice') {
+                if (isEdit) await updateInvoice({ id: initialData.id, ...raw, total_minor: Number(raw.total_minor) });
+                else await createInvoice({ ...raw, total_minor: Number(raw.total_minor) }); 
+              } else {
+                await recordPayment({ ...raw, amount_minor: Number(raw.amount_minor) }); 
+              }
+              setMessage('Saved.'); 
+              if (!isEdit) (event.currentTarget as HTMLFormElement).reset();
+            } catch (err: any) { 
+              setMessage('Could not save record: ' + err.message);
+            } 
+          }) 
+        }}>
+          <input required defaultValue={initialData?.invoice_number || initialData?.quote_number} name={type === 'payment' ? 'invoice_id' : type === 'quote' ? 'quote_number' : 'invoice_number'} placeholder={type === 'payment' ? 'Invoice ID' : `${type} number`} className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
+          {type !== 'payment' && <input required defaultValue={initialData?.client_id} name="client_id" placeholder="Client ID" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />}
+          {type === 'quote' && <input defaultValue={initialData?.lead_id} name="lead_id" placeholder="Lead ID (optional)" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />}
+          {type === 'invoice' && <input defaultValue={initialData?.project_id} name="project_id" placeholder="Project ID (optional)" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />}
+          <input required defaultValue={initialData?.total_minor} type="number" min="0" name={type === 'payment' ? 'amount_minor' : 'total_minor'} placeholder="Amount in minor units" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
+          {type === 'invoice' ? (
+            <>
+              <input defaultValue={initialData?.issued_at ? initialData.issued_at.substring(0, 10) : ''} name="issued_at" type="date" aria-label="Issue date" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
+              <input defaultValue={initialData?.due_at ? initialData.due_at.substring(0, 10) : ''} name="due_at" type="date" aria-label="Due date" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
+            </>
+          ) : type === 'quote' ? (
+            <input defaultValue={initialData?.valid_until ? initialData.valid_until.substring(0, 10) : ''} name="valid_until" type="date" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
+          ) : null}
+          <div className="flex gap-2 sm:col-span-2">
+            <button disabled={pending} type="submit" className="w-fit bg-[#171717] px-4 py-3 text-xs font-bold text-[#f3f0ea]">
+              {pending ? 'Saving...' : 'Save'}
+            </button>
+            {isEdit && type !== 'payment' && (
+              <button disabled={pending} type="button" onClick={handleDelete} className="w-fit border border-red-500 text-red-500 px-4 py-3 text-xs font-bold">
+                {pending ? '...' : 'Delete'}
+              </button>
+            )}
+          </div>
+          {message && <p className="text-xs text-[#b36f43] sm:col-span-2">{message}</p>}
+        </form>
+      )}
+    </div>
+  )
+}
+
+export function FinanceList({ type, data }: { type: 'quote' | 'invoice', data: any[] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[640px] text-left text-xs">
+        <thead className="border-b border-black/10 bg-black/5">
+          <tr>
+            <th className="px-5 py-4 font-bold uppercase tracking-wider text-black/50">ID / Number</th>
+            <th className="px-5 py-4 font-bold uppercase tracking-wider text-black/50">Client ID</th>
+            <th className="px-5 py-4 font-bold uppercase tracking-wider text-black/50">Status</th>
+            <th className="px-5 py-4 font-bold uppercase tracking-wider text-black/50">Total</th>
+            <th className="px-5 py-4 font-bold uppercase tracking-wider text-black/50">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.length === 0 && (
+            <tr>
+              <td colSpan={5} className="p-6 text-center text-black/50">No data found.</td>
+            </tr>
+          )}
+          {data.map((row) => (
+            <tr key={row.id} className="border-b border-black/10 last:border-0">
+              <td className="px-5 py-4 font-medium">{row.invoice_number || row.quote_number}</td>
+              <td className="px-5 py-4">{row.client_id}</td>
+              <td className="px-5 py-4">{row.status}</td>
+              <td className="px-5 py-4">{row.total_minor}</td>
+              <td className="px-5 py-4">
+                <FinanceForm type={type} initialData={row} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 }
