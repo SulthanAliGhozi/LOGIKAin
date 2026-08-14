@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Analytics } from './components/analytics'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://logikain.id'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://logikain.id')
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -14,10 +14,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default: 'LOGIKAin — Yang rumit, kami LOGIKAin.', template: '%s | LOGIKAin' },
   description: 'LOGIKAin membantu bisnis mengubah proses yang berantakan menjadi sistem digital yang mudah dipahami, siap dipakai, dan punya arah.',
+  keywords: ['logikain', 'LOGIKAin', 'jasa pembuatan website', 'software house', 'digital agency', 'sistem informasi', 'web app', 'aplikasi web', 'otomatisasi bisnis'],
   alternates: { canonical: '/' },
+  icons: { icon: '/icon.png', apple: '/icon.png' },
   openGraph: { type: 'website', locale: 'id_ID', url: siteUrl, siteName: 'LOGIKAin', title: 'Yang rumit, kami LOGIKAin.', description: 'Digital partner untuk bisnis yang bergerak.', images: ['/opengraph-image'] },
   twitter: { card: 'summary_large_image', title: 'LOGIKAin — Yang rumit, kami LOGIKAin.', description: 'Digital partner untuk bisnis yang bergerak.', images: ['/opengraph-image'] },
   robots: { index: true, follow: true },
+  verification: { google: 'vd89hi2bFvrnSi81pgVIb4CobTBGOp3F8na_P22qV3s' },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -28,7 +31,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="dns-prefetch" href="https://supabase.co" />
         <link rel="preconnect" href="https://supabase.co" crossOrigin="anonymous" />
       </head>
-      <body>{children}<Analytics /></body>
+      <body>
+        {children}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@graph': [
+            { '@type': 'Organization', name: 'LOGIKAin', alternateName: 'LOGIKAin Digital Partner', url: siteUrl, logo: `${siteUrl}/icon.png` },
+            { '@type': 'WebSite', name: 'LOGIKAin', alternateName: 'LOGIKAin', url: siteUrl },
+          ],
+        }) }} />
+        <Analytics />
+      </body>
     </html>
   )
 }

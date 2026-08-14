@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { getServices, getIndustries, getProjects, getInsights } from '../lib/content-repository'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://logikain.id'
+  const base = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://logikain.id')
   const [services, industries, projects, insights] = await Promise.all([getServices(), getIndustries(), getProjects(), getInsights()])
   const pages = ['/about', '/services', '/industries', '/projects', '/insights', '/process', '/contact', '/start-project', '/privacy', '/terms']
   return [
