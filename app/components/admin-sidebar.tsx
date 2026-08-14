@@ -19,10 +19,10 @@ export function AdminSidebar({ groups }: { groups: SidebarGroup[] }) {
 
   return (
     <>
-      {/* Mobile Toggle Button (Floating) */}
+      {/* Mobile Toggle Button (Top Right Header) */}
       <button 
         onClick={() => setIsMobileOpen(!isMobileOpen)} 
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#b36f43] text-2xl text-white shadow-xl md:hidden"
+        className="fixed top-4 right-6 z-[60] flex items-center justify-center text-3xl text-white md:hidden"
         aria-label="Toggle Menu"
       >
         {isMobileOpen ? '✕' : '☰'}
