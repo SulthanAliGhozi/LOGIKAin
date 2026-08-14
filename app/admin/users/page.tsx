@@ -5,7 +5,7 @@ import { AdminUserRow } from '../../components/admin-user-row'
 
 export default async function UsersAdminPage() {
   const supabase = await createClient()
-  const { data: profiles, error } = await supabase.from('profiles').select('id,username,full_name,role,status,created_at').order('created_at', { ascending: false })
+  const { data: profiles, error } = await supabase.from('profiles').select('id,username,full_name,roles,status,created_at').order('created_at', { ascending: false })
   const authData = process.env.SUPABASE_SERVICE_ROLE_KEY ? (await createAdminClient().auth.admin.listUsers({ page: 1, perPage: 1000 })).data : null
   const emails = new Map((authData?.users || []).map((user) => [user.id, user.email || '']))
   const serviceKeyMissing = !process.env.SUPABASE_SERVICE_ROLE_KEY

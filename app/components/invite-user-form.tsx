@@ -26,7 +26,7 @@ export function InviteUserForm({ disabled = false }: { disabled?: boolean }) {
                 full_name: form.get('full_name'),
                 email: form.get('email'),
                 password: form.get('password'),
-                role: form.get('role'),
+                roles: form.getAll('roles'),
                 status: form.get('status'),
               })
               setMessage('User berhasil dibuat dan bisa langsung login.')
@@ -40,16 +40,23 @@ export function InviteUserForm({ disabled = false }: { disabled?: boolean }) {
           <input required name="full_name" placeholder="Nama lengkap" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
           <input required type="email" name="email" placeholder="Email" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
           <input required minLength={8} type="password" name="password" placeholder="Password minimal 8 karakter" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
-          <select name="role" defaultValue="client" className="border border-black/15 bg-[#f3f0ea] px-3 py-3 text-xs">
-            <option value="client">Client</option>
-            <option value="editor">Editor</option>
-            <option value="sales">Sales</option>
-            <option value="project_member">Project member</option>
-            <option value="finance">Finance</option>
-            <option value="support">Support</option>
-            <option value="admin">Admin</option>
-            <option value="owner">Owner</option>
-          </select>
+          <div className="flex flex-col gap-1 border border-black/15 bg-[#f3f0ea] px-3 py-2 text-xs h-24 overflow-y-auto">
+            {[
+              {value: 'client', label: 'Client'},
+              {value: 'editor', label: 'Editor'},
+              {value: 'sales', label: 'Sales'},
+              {value: 'project_member', label: 'Project member'},
+              {value: 'finance', label: 'Finance'},
+              {value: 'support', label: 'Support'},
+              {value: 'admin', label: 'Admin'},
+              {value: 'owner', label: 'Owner'}
+            ].map(r => (
+              <label key={r.value} className="flex items-center gap-2">
+                <input type="checkbox" name="roles" value={r.value} defaultChecked={r.value === 'client'} className="rounded border-black/20 text-[#b36f43] focus:ring-[#b36f43]" />
+                {r.label}
+              </label>
+            ))}
+          </div>
           <select name="status" defaultValue="active" className="border border-black/15 bg-[#f3f0ea] px-3 py-3 text-xs">
             <option value="active">Active</option>
             <option value="invited">Invited</option>

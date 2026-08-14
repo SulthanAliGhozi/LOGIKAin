@@ -308,51 +308,51 @@ export async function deleteInvoice(id: string) {
   revalidatePath('/admin/finance');
 }
 
-export async function updateUserRole(userId: string, role: string) {
-  const validRole = z.enum(['client','editor','sales','project_member','finance','support','admin','owner']).parse(role); const { supabase, user } = await privilegedClient('users'); if (user.id === userId && validRole !== 'owner') throw new Error('You cannot remove your own owner access')
-  const { data: target } = await supabase.from('profiles').select('role').eq('id', userId).single(); if (target?.role === 'owner' && validRole !== 'owner') { const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'owner').eq('status', 'active'); if ((count || 0) <= 1) throw new Error('At least one active owner is required') }
-  const { error } = await supabase.from('profiles').update({ role: validRole, updated_at: new Date().toISOString() }).eq('id', userId); if (error) throw new Error(error.message); await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'profile', entity_id: userId, action: 'role_changed', metadata: { role: validRole } }); revalidatePath('/admin/users')
+export async function updateUserRole(userId: string, roles: string[]) {
+  const validRoles = z.array(z.enum(['client','editor','sales','project_member','finance','support','admin','owner'])).min(1).parse(roles); const { supabase, user } = await privilegedClient('users'); if (user.id === userId && !validRoles.includes('owner')) throw new Error('You cannot remove your own owner access')
+  const { data: target } = await supabase.from('profiles').select('roles').eq('id', userId).single(); if (target?.roles?.includes('owner') && !validRoles.includes('owner')) { const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).contains('roles', ['owner']).eq('status', 'active'); if ((count || 0) <= 1) throw new Error('At least one active owner is required') }
+  const { error } = await supabase.from('profiles').update({ roles: validRoles, updated_at: new Date().toISOString() }).eq('id', userId); if (error) throw new Error(error.message); await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'profile', entity_id: userId, action: 'role_changed', metadata: { roles: validRoles } }); revalidatePath('/admin/users')
 }
 
 export async function inviteStaffUser(input: unknown) {
-  const data = z.object({ full_name: z.string().min(2).max(120), email: z.string().email(), role: z.enum(['editor','sales','project_member','finance','support','admin','owner']).default('editor') }).parse(input)
+  const data = z.object({ full_name: z.string().min(2).max(120), email: z.string().email(), roles: z.array(z.enum(['editor','sales','project_member','finance','support','admin','owner'])).min(1).default(['editor']) }).parse(input)
   const { user } = await privilegedClient('users')
   const admin = createAdminClient()
   const { data: invited, error } = await admin.auth.admin.inviteUserByEmail(data.email, { data: { full_name: data.full_name }, redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/login` })
   if (error || !invited.user) throw new Error(error?.message || 'User invitation failed')
-  const { error: profileError } = await admin.from('profiles').upsert({ id: invited.user.id, full_name: data.full_name, role: data.role, status: 'invited', updated_at: new Date().toISOString() })
+  const { error: profileError } = await admin.from('profiles').upsert({ id: invited.user.id, full_name: data.full_name, roles: data.roles, status: 'invited', updated_at: new Date().toISOString() })
   if (profileError) throw new Error(profileError.message)
-  await admin.from('activity_logs').insert({ actor_id: user.id, entity_type: 'profile', entity_id: invited.user.id, action: 'invited', metadata: { email: data.email, role: data.role } })
+  await admin.from('activity_logs').insert({ actor_id: user.id, entity_type: 'profile', entity_id: invited.user.id, action: 'invited', metadata: { email: data.email, roles: data.roles } })
   revalidatePath('/admin/users')
 }
 
 export async function createAdminUser(input: unknown) {
-  const data = z.object({ username: z.string().min(3).max(40).regex(/^[a-zA-Z0-9._-]+$/), full_name: z.string().min(2).max(120), email: z.string().email(), password: z.string().min(8).max(128), role: z.enum(['client','editor','sales','project_member','finance','support','admin','owner']).default('client'), status: z.enum(['active','invited','suspended']).default('active') }).parse(input)
+  const data = z.object({ username: z.string().min(3).max(40).regex(/^[a-zA-Z0-9._-]+$/), full_name: z.string().min(2).max(120), email: z.string().email(), password: z.string().min(8).max(128), roles: z.array(z.enum(['client','editor','sales','project_member','finance','support','admin','owner'])).min(1).default(['client']), status: z.enum(['active','invited','suspended']).default('active') }).parse(input)
   const { user } = await privilegedClient('users'); const admin = createAdminClient()
   const { data: created, error } = await admin.auth.admin.createUser({ email: data.email, password: data.password, email_confirm: true, user_metadata: { username: data.username, full_name: data.full_name } })
   if (error || !created.user) throw new Error(error?.message || 'User creation failed')
-  const { error: profileError } = await admin.from('profiles').upsert({ id: created.user.id, username: data.username, full_name: data.full_name, role: data.role, status: data.status, updated_at: new Date().toISOString() })
+  const { error: profileError } = await admin.from('profiles').upsert({ id: created.user.id, username: data.username, full_name: data.full_name, roles: data.roles, status: data.status, updated_at: new Date().toISOString() })
   if (profileError) { await admin.auth.admin.deleteUser(created.user.id); throw new Error(profileError.message) }
-  await admin.from('activity_logs').insert({ actor_id: user.id, entity_type: 'profile', entity_id: created.user.id, action: 'created', metadata: { username: data.username, email: data.email, role: data.role } }); revalidatePath('/admin/users')
+  await admin.from('activity_logs').insert({ actor_id: user.id, entity_type: 'profile', entity_id: created.user.id, action: 'created', metadata: { username: data.username, email: data.email, roles: data.roles } }); revalidatePath('/admin/users')
 }
 
 export async function updateAdminUser(input: unknown) {
-  const data = z.object({ id: z.string().uuid(), username: z.string().min(3).max(40).regex(/^[a-zA-Z0-9._-]+$/), full_name: z.string().min(2).max(120), email: z.string().email(), password: z.string().max(128).optional(), role: z.enum(['client','editor','sales','project_member','finance','support','admin','owner']), status: z.enum(['active','invited','suspended']) }).parse(input)
+  const data = z.object({ id: z.string().uuid(), username: z.string().min(3).max(40).regex(/^[a-zA-Z0-9._-]+$/), full_name: z.string().min(2).max(120), email: z.string().email(), password: z.string().max(128).optional(), roles: z.array(z.enum(['client','editor','sales','project_member','finance','support','admin','owner'])).min(1), status: z.enum(['active','invited','suspended']) }).parse(input)
   const { user } = await privilegedClient('users'); if (user.id === data.id && data.status !== 'active') throw new Error('You cannot suspend your own account')
   const admin = createAdminClient()
   const { password } = data
   const { error: authError } = await admin.auth.admin.updateUserById(data.id, { email: data.email, ...(password ? { password } : {}), user_metadata: { username: data.username, full_name: data.full_name } })
   if (authError) throw new Error(authError.message)
-  const { error: profileError } = await admin.from('profiles').update({ username: data.username, full_name: data.full_name, role: data.role, status: data.status, updated_at: new Date().toISOString() }).eq('id', data.id)
+  const { error: profileError } = await admin.from('profiles').update({ username: data.username, full_name: data.full_name, roles: data.roles, status: data.status, updated_at: new Date().toISOString() }).eq('id', data.id)
   if (profileError) throw new Error(profileError.message)
-  await admin.from('activity_logs').insert({ actor_id: user.id, entity_type: 'profile', entity_id: data.id, action: 'updated', metadata: { email: data.email, role: data.role, status: data.status } })
+  await admin.from('activity_logs').insert({ actor_id: user.id, entity_type: 'profile', entity_id: data.id, action: 'updated', metadata: { email: data.email, roles: data.roles, status: data.status } })
   revalidatePath('/admin/users')
 }
 
 export async function deleteAdminUser(userId: string) {
   const id = z.string().uuid().parse(userId); const { user, supabase } = await privilegedClient('users'); if (user.id === id) throw new Error('You cannot delete your own account')
-  const { data: target } = await supabase.from('profiles').select('role').eq('id', id).single()
-  if (target?.role === 'owner') { const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'owner').eq('status', 'active'); if ((count || 0) <= 1) throw new Error('At least one active owner is required') }
+  const { data: target } = await supabase.from('profiles').select('roles').eq('id', id).single()
+  if (target?.roles?.includes('owner')) { const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).contains('roles', ['owner']).eq('status', 'active'); if ((count || 0) <= 1) throw new Error('At least one active owner is required') }
   const admin = createAdminClient(); const { error } = await admin.auth.admin.deleteUser(id); if (error) throw new Error(error.message)
   await admin.from('activity_logs').insert({ actor_id: user.id, entity_type: 'profile', entity_id: id, action: 'deleted' }); revalidatePath('/admin/users')
 }
