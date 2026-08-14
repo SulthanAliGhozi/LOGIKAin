@@ -50,14 +50,14 @@ export default async function AdminPage() {
       {/* Stats */}
       <div className="mt-8 grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[
-          { label: 'Total Leads', value: leads ?? 0, sub: 'Sales pipeline', href: '/admin/leads', color: 'text-blue-600' },
-          { label: 'Active Clients', value: clients ?? 0, sub: 'Relationships', href: '/admin/clients', color: 'text-green-600' },
-          { label: 'Projects', value: projects ?? 0, sub: 'Delivery', href: '/admin/projects', color: 'text-purple-600' },
-          { label: 'Invoices', value: invoices ?? 0, sub: 'Commercial', href: '/admin/invoices', color: 'text-[#b36f43]' },
-        ].map(({ label, value, sub, href, color }) => (
-          <a key={label} href={href} className="group border border-black/10 bg-white/50 p-5 hover:border-[#b36f43]/30 hover:bg-white/70">
+          { label: 'Total Leads', value: leads ?? 0, sub: 'Sales pipeline', href: '/admin/leads' },
+          { label: 'Active Clients', value: clients ?? 0, sub: 'Relationships', href: '/admin/clients' },
+          { label: 'Projects', value: projects ?? 0, sub: 'Delivery', href: '/admin/projects' },
+          { label: 'Invoices', value: invoices ?? 0, sub: 'Commercial', href: '/admin/invoices' },
+        ].map(({ label, value, sub, href }) => (
+          <a key={label} href={href} className="group border border-black/10 bg-white/50 p-5 transition-colors hover:border-[#b36f43]/30 hover:bg-white/70">
             <p className="mono text-[9px] tracking-widest text-black/40">{label.toUpperCase()}</p>
-            <p className={`mt-4 text-5xl font-extrabold tracking-[-2px] ${color}`}>{value}</p>
+            <p className="mt-4 text-5xl font-extrabold tracking-[-2px] text-[#171717] group-hover:text-[#b36f43]">{value}</p>
             <p className="mt-2 text-xs text-black/40">{sub}</p>
           </a>
         ))}
