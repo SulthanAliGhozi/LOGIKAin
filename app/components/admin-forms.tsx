@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { createAdminLead, createAdminProject, updateLead, updateAdminProject } from '../actions/admin'
+import { EntityPicker } from './entity-picker'
 
 type LeadData = {
   id?: string
@@ -67,6 +68,7 @@ export function LeadForm({ initialData }: { initialData?: LeadData }) {
 type ProjectData = {
   id?: string
   name: string
+  client_id?: string
   description?: string
   status?: string
 }
@@ -87,6 +89,7 @@ export function ProjectForm({ initialData }: { initialData?: ProjectData }) {
             await updateAdminProject({ 
               id: initialData.id, 
               name: form.get('name'), 
+              client_id: form.get('client_id') || undefined,
               description: form.get('description'),
               status: form.get('status') || initialData.status
             })
@@ -94,6 +97,7 @@ export function ProjectForm({ initialData }: { initialData?: ProjectData }) {
           } else {
             await createAdminProject({ 
               name: form.get('name'), 
+              client_id: form.get('client_id') || undefined,
               description: form.get('description') 
             })
             setMessage('Project created.')
@@ -108,6 +112,7 @@ export function ProjectForm({ initialData }: { initialData?: ProjectData }) {
         <h3 className="font-bold">{initialData ? 'Edit Project' : 'Create New Project'}</h3>
       </div>
       <input required name="name" defaultValue={initialData?.name || ''} placeholder="Project name" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
+      <EntityPicker name="client_id" entity="clients" defaultValue={initialData?.client_id} placeholder="Pilih Client (Opsional)..." />
       <textarea name="description" defaultValue={initialData?.description || ''} placeholder="Description" className="border border-black/15 bg-transparent px-3 py-3 text-xs" rows={3} />
       {initialData && (
         <select name="status" defaultValue={initialData.status} className="border border-black/15 bg-transparent px-3 py-3 text-xs">

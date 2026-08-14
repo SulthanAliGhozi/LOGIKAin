@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { createInvoice, createQuote, recordPayment, updateInvoice, updateQuote } from '../actions/admin'
 import { AdminActionGroup, AdminEditIcon, AdminDeleteIcon, AdminViewIcon } from './admin-actions'
 import { InvoicePicker } from './invoice-picker'
+import { EntityPicker } from './entity-picker'
 
 type FinanceData = {
   id?: string;
@@ -52,9 +53,15 @@ export function FinanceForm({ type, initialData }: { type: 'quote' | 'invoice' |
           ) : (
             <input required defaultValue={initialData?.invoice_number || initialData?.quote_number} name={type === 'quote' ? 'quote_number' : 'invoice_number'} placeholder={`${type} number`} className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
           )}
-          {type !== 'payment' && <input required defaultValue={initialData?.client_id} name="client_id" placeholder="Client ID" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />}
-          {type === 'quote' && <input defaultValue={initialData?.lead_id} name="lead_id" placeholder="Lead ID (optional)" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />}
-          {type === 'invoice' && <input defaultValue={initialData?.project_id} name="project_id" placeholder="Project ID (optional)" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />}
+          {type !== 'payment' && (
+            <EntityPicker required name="client_id" entity="clients" defaultValue={initialData?.client_id} placeholder="Pilih Client..." />
+          )}
+          {type === 'quote' && (
+            <EntityPicker name="lead_id" entity="leads" defaultValue={initialData?.lead_id} placeholder="Pilih Lead (Opsional)..." />
+          )}
+          {type === 'invoice' && (
+            <EntityPicker name="project_id" entity="business_projects" defaultValue={initialData?.project_id} placeholder="Pilih Project (Opsional)..." />
+          )}
           <input required defaultValue={initialData?.total_minor} type="number" min="0" name={type === 'payment' ? 'amount_minor' : 'total_minor'} placeholder="Amount in minor units" className="border border-black/15 bg-transparent px-3 py-3 text-xs" />
           {type === 'invoice' ? (
             <>

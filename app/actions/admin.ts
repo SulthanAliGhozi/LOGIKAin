@@ -91,7 +91,7 @@ export async function createAdminProject(input: unknown) {
 }
 
 export async function updateAdminProject(input: unknown) {
-  const schema = z.object({ id: z.string().uuid(), name: z.string().min(2), description: z.string().default(''), status: z.enum(['draft','active','completed','cancelled']).default('active') })
+  const schema = z.object({ id: z.string().uuid(), name: z.string().min(2), client_id: z.string().uuid().optional(), description: z.string().default(''), status: z.enum(['draft','planning','active','on_hold','completed','cancelled','archived']).default('active') })
   const data = schema.parse(input); const { id, ...fields } = data; const { supabase, user } = await staffClient('delivery')
   const { error } = await supabase.from('business_projects').update({ ...fields, updated_at: new Date().toISOString() }).eq('id', id)
   if (error) throw new Error(error.message)
