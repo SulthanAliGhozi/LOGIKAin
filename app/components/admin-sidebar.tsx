@@ -21,13 +21,15 @@ export function AdminSidebar({ groups, profile }: { groups: SidebarGroup[], prof
   return (
     <>
       {/* Mobile Toggle Button (Top Right Header) */}
-      <button 
-        onClick={() => setIsMobileOpen(!isMobileOpen)} 
-        className="fixed top-4 right-6 z-[60] flex items-center justify-center text-3xl text-white md:hidden"
-        aria-label="Toggle Menu"
-      >
-        {isMobileOpen ? '✕' : '☰'}
-      </button>
+      {!isMobileOpen && (
+        <button 
+          onClick={() => setIsMobileOpen(true)} 
+          className="fixed top-4 right-6 z-[60] flex items-center justify-center text-3xl text-white md:hidden"
+          aria-label="Toggle Menu"
+        >
+          ☰
+        </button>
+      )}
 
       {/* Mobile Overlay */}
       {isMobileOpen && (
