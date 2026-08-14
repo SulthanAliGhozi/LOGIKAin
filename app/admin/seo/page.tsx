@@ -1,5 +1,6 @@
 import { createClient } from '../../../lib/supabase/server'
 import { RedirectForm } from './redirect-form'
+import { AdminDeleteButton } from '../../components/admin-delete-button'
 
 function StatusBadge({ code }: { code: number }) {
   let color = 'bg-gray-100 text-gray-700'
@@ -9,10 +10,13 @@ function StatusBadge({ code }: { code: number }) {
   return <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-bold font-mono ${color}`}>{code}</span>
 }
 
-export default async function SeoAdminPage() { 
+export default async function SeoAdminPage({ searchParams }: { searchParams: { edit?: string } }) { 
   const supabase = await createClient(); 
-  const { data, error } = await supabase.from('redirects').select('source_path,target_path,status_code,reason,created_at').order('created_at', { ascending: false }); 
+  const { data, error } = await supabase.from('redirects').select('id,source_path,target_path,status_code,reason,created_at').order('created_at', { ascending: false }); 
   const count = data?.length || 0;
+
+  const editId = searchParams?.edit
+  const editData = editId ? data?.find(t => t.id === editId) : undefined
 
   return (
     <main className="min-h-screen bg-[#f3f0ea] p-6 text-[#171717] md:p-10">
@@ -34,8 +38,8 @@ export default async function SeoAdminPage() {
         </div>
       </div>
 
-      <div className="mt-10 bg-white p-6 rounded-xl border border-black/10 shadow-sm">
-        <RedirectForm />
+      <div className="mt-10 bg-white p-6 rounded-xl border border-black/10 shadow-sm" id="form-section">
+        <RedirectForm initialData={editData} />
       </div>
 
       <div className="mt-10 overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
@@ -52,14 +56,14 @@ export default async function SeoAdminPage() {
             <table className="w-full min-w-[700px] text-left text-sm">
               <thead className="border-b border-black/10 bg-black/[0.02]">
                 <tr>
-                  {['Source Path', 'Target Path', 'Status', 'Reason'].map((x) => (
+                  {['Source Path', 'Target Path', 'Status', 'Reason', 'Actions'].map((x) => (
                     <th key={x} className="px-6 py-4 font-semibold text-black/60">{x}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
                 {(data || []).map((row) => (
-                  <tr key={row.source_path} className="hover:bg-black/[0.02] even:bg-black/[0.01] transition-colors">
+                  <tr key={row.id} className="hover:bg-black/[0.02] even:bg-black/[0.01] transition-colors align-top">
                     <td className="px-6 py-4 font-mono font-medium text-xs text-black/80">{row.source_path}</td>
                     <td className="px-6 py-4 font-mono text-xs text-black/60">
                       <div className="flex items-center gap-2">
@@ -69,6 +73,10 @@ export default async function SeoAdminPage() {
                     </td>
                     <td className="px-6 py-4"><StatusBadge code={row.status_code} /></td>
                     <td className="px-6 py-4 text-black/60">{row.reason || '—'}</td>
+                    <td className="px-6 py-4 flex items-center gap-4">
+                      <a href={`/admin/seo?edit=${row.id}#form-section`} className="text-xs font-bold text-[#b36f43] hover:underline">Edit</a>
+                      <AdminDeleteButton id={row.id} kind="redirect" />
+                    </td>
                   </tr>
                 ))}
               </tbody>

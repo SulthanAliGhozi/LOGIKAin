@@ -339,6 +339,16 @@ export async function createRedirect(input: unknown) {
   await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'redirect', entity_id: redirectRow.id, action: 'created' }); revalidatePath('/admin/seo'); return redirectRow
 }
 
+export async function updateRedirect(input: unknown) {
+  const data = z.object({ id: z.string().uuid(), source_path: z.string().startsWith('/'), target_path: z.string().startsWith('/'), status_code: z.enum(['301','302']).transform(Number), reason: z.string().optional() }).parse(input)
+  const { id, ...fields } = data
+  const { supabase, user } = await staffClient('seo')
+  const { error } = await supabase.from('redirects').update({ ...fields, updated_at: new Date().toISOString() }).eq('id', id)
+  if (error) throw new Error(error.message)
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'redirect', entity_id: id, action: 'updated' })
+  revalidatePath('/admin/seo')
+}
+
 export async function updateSiteSetting(key: string, value: unknown) {
   const safeKey = z.string().min(1).max(100).parse(key); const { supabase, user } = await privilegedClient('settings'); const { error } = await supabase.from('site_settings').upsert({ key: safeKey, value, updated_by: user.id, updated_at: new Date().toISOString() }); if (error) throw new Error(error.message)
   await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'site_setting', action: 'updated', metadata: { key: safeKey } }); revalidatePath('/admin/settings'); revalidatePath('/');
