@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { deleteMediaAsset, deleteRedirect, deleteTestimonial } from '../actions/admin'
+import { deleteMediaAsset, deleteRedirect, deleteTestimonial, deleteLead } from '../actions/admin'
 
-const actions = { testimonial: deleteTestimonial, media: deleteMediaAsset, redirect: deleteRedirect } as const
+const actions = { testimonial: deleteTestimonial, media: deleteMediaAsset, redirect: deleteRedirect, lead: deleteLead } as const
 type Kind = keyof typeof actions
 
 export function AdminDeleteButton({ id, kind }: { id: string; kind: Kind }) {

@@ -1,6 +1,7 @@
 import { createClient } from '../../../lib/supabase/server'
-import { NewLeadForm } from '../../components/admin-forms'
+import { LeadForm } from '../../components/admin-forms'
 import { ConvertLeadButton } from '../../components/lead-actions'
+import { AdminDeleteButton } from '../../components/admin-delete-button'
 
 function StatusBadge({ status }: { status: string }) {
   const s = status.toLowerCase()
@@ -16,10 +17,13 @@ function formatDate(dateStr: string | null) {
   return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-export default async function LeadsAdminPage() {
+export default async function LeadsAdminPage({ searchParams }: { searchParams: { edit?: string } }) {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('leads').select('id,name,email,status,source,created_at').order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('leads').select('id,name,email,brief,status,source,created_at').order('created_at', { ascending: false });
   const count = data?.length || 0;
+  
+  const editId = searchParams?.edit
+  const editData = editId ? data?.find(l => l.id === editId) : undefined
 
   return (
     <main className="min-h-screen bg-[#f3f0ea] p-6 text-[#171717] md:p-10">
@@ -41,6 +45,10 @@ export default async function LeadsAdminPage() {
         </div>
       </div>
 
+      <div className="mt-10 bg-white p-6 rounded-xl border border-black/10 shadow-sm" id="form-section">
+        <LeadForm initialData={editData} />
+      </div>
+
       <div className="mt-10 overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
         {error ? (
           <div className="p-12 text-center text-sm text-red-700 bg-red-50">
@@ -52,7 +60,7 @@ export default async function LeadsAdminPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] text-left text-sm">
+            <table className="w-full min-w-[900px] text-left text-sm">
               <thead className="border-b border-black/10 bg-black/[0.02]">
                 <tr>
                   {['Name', 'Email', 'Status', 'Source', 'Created', 'Action'].map((column) => (
@@ -61,24 +69,28 @@ export default async function LeadsAdminPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
-                {data.map((row) => (
-                  <tr key={row.id} className="hover:bg-black/[0.02] even:bg-black/[0.01] transition-colors">
+                {(data || []).map((row) => (
+                  <tr key={row.id} className="hover:bg-black/[0.02] even:bg-black/[0.01] transition-colors align-top">
                     <td className="px-6 py-4 font-medium">{row.name}</td>
                     <td className="px-6 py-4 text-black/60">{row.email}</td>
                     <td className="px-6 py-4"><StatusBadge status={row.status} /></td>
                     <td className="px-6 py-4 capitalize text-black/60">{row.source}</td>
                     <td className="px-6 py-4 text-black/60">{formatDate(row.created_at)}</td>
-                    <td className="px-6 py-4"><ConvertLeadButton leadId={row.id} status={row.status} /></td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-3">
+                        <ConvertLeadButton leadId={row.id} status={row.status} />
+                        <div className="flex items-center gap-3">
+                          <a href={`/admin/leads?edit=${row.id}#form-section`} className="text-[10px] font-bold text-[#b36f43] hover:underline">Edit</a>
+                          <AdminDeleteButton id={row.id} kind="lead" />
+                        </div>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </div>
-      
-      <div className="mt-8 bg-white p-6 rounded-xl border border-black/10 shadow-sm">
-        <NewLeadForm />
       </div>
     </main>
   )

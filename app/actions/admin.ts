@@ -38,6 +38,26 @@ export async function createAdminLead(input: unknown) {
   revalidatePath('/admin'); revalidatePath('/admin/leads'); return lead
 }
 
+export async function updateLead(input: unknown) {
+  const schema = z.object({ id: z.string().uuid(), name: z.string().min(2), email: z.string().email(), brief: z.string().min(10), source: z.string().default('admin') })
+  const data = schema.parse(input)
+  const { id, ...fields } = data
+  const { supabase, user } = await staffClient('leads')
+  const { error } = await supabase.from('leads').update({ ...fields, updated_at: new Date().toISOString() }).eq('id', id)
+  if (error) throw new Error(error.message)
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'lead', entity_id: id, action: 'updated' })
+  revalidatePath('/admin/leads')
+}
+
+export async function deleteLead(id: string) {
+  const leadId = z.string().uuid().parse(id)
+  const { supabase, user } = await staffClient('leads')
+  const { error } = await supabase.from('leads').delete().eq('id', leadId)
+  if (error) throw new Error(error.message)
+  await supabase.from('activity_logs').insert({ actor_id: user.id, entity_type: 'lead', entity_id: leadId, action: 'deleted' })
+  revalidatePath('/admin/leads')
+}
+
 export async function updateLeadStatus(id: string, status: string) {
   const validStatus = z.enum(['new','contacted','qualified','proposal','won','lost','archived']).parse(status); const { supabase, user } = await staffClient('leads')
   const { error } = await supabase.from('leads').update({ status: validStatus, updated_at: new Date().toISOString() }).eq('id', id)
